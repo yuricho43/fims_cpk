@@ -37,12 +37,12 @@
                 <label for="myIncludeDate">&nbsp;&nbsp;&nbsp;기간지정</label>
                 <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
                 <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
-                                   BottomView="@CalendarView.Year"
-                                   Format="yyyy-mm" Width="120px"></TelerikDatePicker>
+                           BottomView="@CalendarView.Month"
+                           Format="yyyy-MM-dd" Width="140px"></TelerikDatePicker>
                 ~
                 <TelerikDatePicker @bind-Value="@gEndYear"
-                           BottomView="@CalendarView.Year"
-                                   Format="yyyy-mm" Width="120px"></TelerikDatePicker>
+                           BottomView="@CalendarView.Month"
+                           Format="yyyy-MM-dd" Width="140px"></TelerikDatePicker>
 
                 <label for="myManageSite"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
                 <TelerikTextBox Id="myManageSite" @bind-Value="@gStringManageSite" Width="150px" />
@@ -50,8 +50,7 @@
                 <TelerikTextBox Id="myCountry" @bind-Value="@gStringCountry" Width="150px" />
                 <label for="myCustomer"> &nbsp;&nbsp;&nbsp;&nbsp;마감자:</label>
                 <TelerikTextBox Id="myCustomer" @bind-Value="@gStringCustomer" Width="150px" />
-                &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;
-                <br />
+                &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;
                 <TelerikButton ThemeColor="success" OnClick="@SearchRecord" Icon="FontIcon.Search">검색</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
             </CardHeader>
 

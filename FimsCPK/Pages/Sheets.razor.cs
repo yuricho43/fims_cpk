@@ -35,7 +35,7 @@ namespace FimsCPK.Pages
         private string gStringCustomer = "";
         private bool gSetDuration = false;
         private int gCounter = 0;
-        public DateTime gMinYear = new DateTime(2000, 1, 1, 0, 0, 0);
+        public DateTime gMinYear = new DateTime(2023, 1, 1, 0, 0, 0);
         public DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
         public int gSpanYear = 0;
         public int gPageSize = 100;
@@ -50,6 +50,11 @@ namespace FimsCPK.Pages
             500,
             null
         };
+        protected override async Task OnInitializedAsync()
+        {
+            gStartYear = gEndYear.AddMonths(-12);
+        }
+
         private void OnStateInit(GridStateEventArgs<Tsheet> args)
         {
             SearchRecord();
@@ -57,15 +62,16 @@ namespace FimsCPK.Pages
 
         async Task SearchRecord()
         {
-            string strStartDate = gStartYear.ToString("yyyy-MM-dd").Substring(0, 7);
-            string strEndDate = gEndYear.ToString("yyyy-MM-dd").Substring(0, 7);
+            string strStartDate = gStartYear.ToString("yyyy-MM-dd");
+            string strEndDate = gEndYear.ToString("yyyy-MM-dd");
+
             using (var db = new FimsDbContext())
             {
                 if (gSetDuration == false) // 날짜 무시
                     gSheetList = db.Tsheets.ToList();
                 else
-                    // gInstallList = db.InstallStatuses.Where(n => n.DateSetup.Length >= 4 && n.DateSetup.Substring(0, 4) == strStartDate).ToList();
-                    gSheetList = db.Tsheets.Where(n => n.CreatedOn.ToString("yyyy-MM-dd").Length >= 7 && String.Compare(n.CreatedOn.ToString("yyyy-MM-dd").Substring(0, 7), strStartDate) >= 0 && String.Compare(n.CreatedOn.ToString("yyyy-MM-dd").Substring(0, 7), strEndDate) <= 0).ToList();
+                    gSheetList = db.Tsheets.OrderBy(x=>x.InspectionEndDateTime).Where(n => n.InspectionEndDateTime >= gStartYear && n.InspectionEndDateTime <= gEndYear).ToList();
+                // gSheetList = db.Tsheets.Where(n => n.CreatedOn.ToString("yyyy-MM-dd").Length >= 10 && String.Compare(n.CreatedOn.ToString("yyyy-MM-dd"), strStartDate) >= 0 && String.Compare(n.CreatedOn.ToString("yyyy-MM-dd"), strEndDate) <= 0).ToList();
                 gCounter = gSheetList.Count;
             }
         }

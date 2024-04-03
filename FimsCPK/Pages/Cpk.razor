@@ -36,26 +36,25 @@
 
     <CardHeader>
         &nbsp;&nbsp;&nbsp
-@*
         <label for="myIncludeDate">&nbsp;&nbsp;&nbsp;기간지정</label>
         <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
         <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
-                           BottomView="@CalendarView.Year"
-                           Format="yyyy-mm" Width="120px"></TelerikDatePicker>
+                           BottomView="@CalendarView.Month"
+        Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
         ~
         <TelerikDatePicker @bind-Value="@gEndYear"
-                           BottomView="@CalendarView.Year"
-                           Format="yyyy-mm" Width="120px"></TelerikDatePicker>
-*@
+        BottomView="@CalendarView.Month"
+        Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
+
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
-        <TelerikComboBox Data="@gModelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="gTargetModel"
+        <TelerikComboBox Data="@gModelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="@gTargetModel"
                          Placeholder="Select an item..." ClearButton="true" Filterable="true">
         </TelerikComboBox>  
         
         <label for="myTestNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
         <TelerikTextBox Id="myTestNum" @bind-Value="@gTestNumber" Width="150px" />
         <label for="myChannel"> &nbsp;&nbsp;&nbsp;&nbsp;Channel:</label>
-        <TelerikComboBox Data="@gChananelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="gChannelName"
+        <TelerikComboBox Data="@gChananelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="@gChannelName"
                          Placeholder="Select an item..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
 
@@ -128,7 +127,7 @@
                             <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
                             <ChartLegend Visible="true"></ChartLegend>
                             <ChartSeriesItems>
-                                <ChartSeries Type="ChartSeriesType.Column"
+                                <ChartSeries Type="ChartSeriesType.Line"
                                              Name="CTQ 측정값"
                                              Data="@gListCtq"
                                              Field="@gFieldName">
@@ -162,7 +161,7 @@
     public List<Tsheet> gSheetList { get; set; }
     public List<CPK_Items> gListCtq { get; set; }
 
-    public DateTime gMinYear = new DateTime(2000, 1, 1, 0, 0, 0);
+    public DateTime gMinYear = new DateTime(2023, 1, 1, 0, 0, 0);
     public DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
 
     private DateTime gStartYear = DateTime.Now;
@@ -170,8 +169,8 @@
 
     private string gTargetModel = "ESC310";
     private string gChannelName = "";
-    private string gTestNumber = "1004";
-    private string gFieldName = "";
+    private string gTestNumber = "2009";
+    private string gFieldName = "Channel1";
     private bool gSetDuration = false;
     private int gCounter = 0;
 
@@ -191,6 +190,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        gStartYear.AddMonths(-12);
         List_Models();
     }
 
@@ -227,6 +227,9 @@
             return;
         }
 
+        string strStartDate = gStartYear.ToString("yyyy-MM-dd");
+        string strEndDate = gEndYear.ToString("yyyy-MM-dd");
+
         int iTestNo = int.Parse(gTestNumber);
         string strModel = gTargetModel;
         if (gChannelName == "Channel1")
@@ -239,21 +242,37 @@
 
         using (var db = new FimsDbContext())
         {
-            gListCtq = (from sheet in db.Tsheets
-                        from item in db.Titems
+            if (gSetDuration == false) // 날짜 무시
+                gListCtq = (from sheet in db.Tsheets
+                            from item in db.Titems
                         orderby sheet.InspectionEndDateTime
                         where sheet.ProductModel == gTargetModel &&
                              sheet.Id == item.TsheetId &&
                              item.TestNo == iTestNo
-                        select new CPK_Items {
+                       select new CPK_Items
+                        {
+                            sn = sheet.ProductSerial,
+                            workdate = sheet.InspectionEndDateTime,
+                            value1 = (float)(item.Ch1Data == null ? 0.0 : float.Parse(item.Ch1Data)),
+                            value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
+                            value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
+                        }).ToList();
+             else
+                gListCtq = (from sheet in db.Tsheets
+                        from item in db.Titems
+                        orderby sheet.InspectionEndDateTime
+                        where sheet.ProductModel == gTargetModel &&
+                             sheet.Id == item.TsheetId &&
+                             item.TestNo == iTestNo &&
+                             sheet.InspectionEndDateTime >= gStartYear &&
+                             sheet.InspectionEndDateTime <= gEndYear
+                        select new CPK_Items 
+                        {
                                 sn = sheet.ProductSerial,
                                 workdate = sheet.InspectionEndDateTime,
                                 value1 = (float)(item.Ch1Data == null ? 0.0 : float.Parse(item.Ch1Data)),
                                 value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
                                 value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
-/*                                value1 = (float) (item.Ch1Data == null ? 0.0 : float.Parse(item.Ch1Data)),
-                                value3 = (float) (item.Ch3Data == null ? 0.0 : float.Parse(item.Ch1Data))
-*/
                         }).ToList();
             gCounter = gListCtq.Count();
         }
