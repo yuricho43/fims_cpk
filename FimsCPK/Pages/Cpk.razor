@@ -1,0 +1,266 @@
+﻿@page "/cpk"
+
+@using FimsCPK.Models;
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+@using Telerik.SvgIcons;
+@inject IJSRuntime JsRuntime
+
+<style>
+    .k-grid tbody {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 0.5;
+        font-size: 12px;
+        font-family: calibri;
+        /* background-color: lightyellow;*/
+    }
+
+    .k-grid-header .k-header {
+        font-weight: bold;
+        font-size: 14px;
+        font-family: calibri;
+        padding: 1px;
+        margin: 1px;
+        text-align: center;
+        background-color: lightcyan;
+    }
+</style>
+
+
+<PageTitle>Fims Dashboard</PageTitle>
+
+<TelerikCard>
+
+    <CardHeader>
+        &nbsp;&nbsp;&nbsp
+@*
+        <label for="myIncludeDate">&nbsp;&nbsp;&nbsp;기간지정</label>
+        <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
+        <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
+                           BottomView="@CalendarView.Year"
+                           Format="yyyy-mm" Width="120px"></TelerikDatePicker>
+        ~
+        <TelerikDatePicker @bind-Value="@gEndYear"
+                           BottomView="@CalendarView.Year"
+                           Format="yyyy-mm" Width="120px"></TelerikDatePicker>
+*@
+        <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
+        <TelerikComboBox Data="@gModelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="gTargetModel"
+                         Placeholder="Select an item..." ClearButton="true" Filterable="true">
+        </TelerikComboBox>  
+        
+        <label for="myTestNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
+        <TelerikTextBox Id="myTestNum" @bind-Value="@gTestNumber" Width="150px" />
+        <label for="myChannel"> &nbsp;&nbsp;&nbsp;&nbsp;Channel:</label>
+        <TelerikComboBox Data="@gChananelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="gChannelName"
+                         Placeholder="Select an item..." ClearButton="true" Filterable="true">
+        </TelerikComboBox>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Model" Icon="FontIcon.Search">CPK체크</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
+    </CardHeader>
+
+
+    <CardBody>
+        <TelerikTileLayout Columns="6"
+                           ColumnWidth="18%"
+                           RowHeight="200px"
+                           Reorderable="true"
+                           Resizable="true">
+            <TileLayoutItems>
+               <TileLayoutItem HeaderText="모델별 통계" RowSpan="2"  ColSpan="2">
+                    <Content>
+                        <TelerikGrid Class="cpk-grid"
+                                     Data="@gListCtq"
+                                     ConfirmDelete="true"
+                                     Pageable="false"
+                                     Groupable="false"
+                                     Sortable="false"
+                                     FilterMode="GridFilterMode.FilterMenu"
+                                     Resizable="true"
+                                     Reorderable="true"
+                                     EditMode="GridEditMode.Popup"
+                                     PageSize=@gPageSize
+                                     Navigable="true"
+                                     Height="100%">
+
+                            <GridToolBarTemplate>
+                                <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">Export to Excel</GridCommandButton>
+                                <label class="k-checkbox-label"><TelerikCheckBox @bind-Value="@ExportAllPages" />Export All Pages</label>
+                            </GridToolBarTemplate>
+
+                            <GridSettings>
+                                <GridPagerSettings InputType="PagerInputType.Buttons"
+                                                   ButtonCount="20"
+                                                   Position="PagerPosition.Top">
+                                </GridPagerSettings>
+                            </GridSettings>
+
+                            <GridExport>
+                                <GridExcelExport FileName="telerik-grid-export" AllPages="true" />
+                            </GridExport>
+
+                            <GridColumns>
+
+
+                                <GridColumn Field=@nameof(CPK_Items.sn) Width="30px" Title="SN" Sortable=true />
+                                <GridColumn Field=@nameof(CPK_Items.workdate) Width="60px" Title="검사날짜" Sortable=true />
+                                <GridColumn Field=@nameof(CPK_Items.value1) Width="30px" Title="CH1값" Sortable=true />
+                                <GridColumn Field=@nameof(CPK_Items.value2) Width="30px" Title="CH2값" Sortable=true />
+                                <GridColumn Field=@nameof(CPK_Items.value3) Width="30px" Title="CH3값" Sortable=true />
+
+@*
+                                <GridColumn Field=@nameof(Tsheet.ProductSerial) Width="30px" Title="SN" Sortable=true />
+                                <GridColumn Field=@nameof(Tsheet.InspectionEndDateTime) Width="40px" Title="검사날짜" Sortable=true />
+                                <GridColumn Field=@nameof(Tsheet.InspectorName) Width="30px" Title="값" Sortable=true />
+*@
+                            </GridColumns>
+
+                        </TelerikGrid>
+                    </Content>
+               </TileLayoutItem>
+               <TileLayoutItem HeaderText="CPK 그래프" RowSpan="2"  ColSpan="4">
+                    <Content>
+                        <TelerikChart Height="90%">
+                            <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
+                            <ChartLegend Visible="true"></ChartLegend>
+                            <ChartSeriesItems>
+                                <ChartSeries Type="ChartSeriesType.Column"
+                                             Name="CTQ 측정값"
+                                             Data="@gListCtq"
+                                             Field="@gFieldName">
+                                </ChartSeries>
+                            </ChartSeriesItems>
+
+                            <ChartValueAxes>
+                                <ChartValueAxis>
+                                    <ChartValueAxisTitle Text="측정값" />
+                                    <ChartValueAxisMajorGridLines Visible="true" />
+                                    <ChartValueAxisPlotBands>
+                                        <ChartValueAxisPlotBand From="100" To="200" Color="#00cc00" Opacity="0.3"></ChartValueAxisPlotBand>
+                                    </ChartValueAxisPlotBands>
+                                </ChartValueAxis>
+                            </ChartValueAxes>
+
+                        </TelerikChart>
+                    </Content>
+                </TileLayoutItem>
+            </TileLayoutItems>
+        </TelerikTileLayout>
+
+
+    </CardBody>
+
+</TelerikCard>
+
+@code {
+    static List<string> gModelNames = new List<string>();
+    static string[] gChananelNames = { "Channel1", "Channel2", "Channel3" };
+    public List<Tsheet> gSheetList { get; set; }
+    public List<CPK_Items> gListCtq { get; set; }
+
+    public DateTime gMinYear = new DateTime(2000, 1, 1, 0, 0, 0);
+    public DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
+
+    private DateTime gStartYear = DateTime.Now;
+    private DateTime gEndYear = DateTime.Now;
+
+    private string gTargetModel = "ESC310";
+    private string gChannelName = "";
+    private string gTestNumber = "1004";
+    private string gFieldName = "";
+    private bool gSetDuration = false;
+    private int gCounter = 0;
+
+    public int gSpanYear = 0;
+    public int gPageSize = 100;
+    bool ExportAllPages { get; set; }
+
+    public class CPK_Items
+    {
+        public string sn { get; set; }
+        public DateTime workdate { get; set; }
+        public float value1 { get; set; }
+        public float value2 { get; set; }
+        public float value3 { get; set; }
+    };
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        List_Models();
+    }
+
+    private void List_Models()
+    {
+        //--- if alread models are listed-up, skip
+        if (gModelNames.Count > 0)
+            return;
+
+        using (var db = new FimsDbContext())
+        {
+            gSheetList = db.Tsheets.ToList();
+        }
+
+        var models = from sheet in gSheetList
+                     orderby sheet.ProductModel
+                     group sheet by sheet.ProductModel into grp
+                     select grp.Key;
+
+        foreach(var item in models)
+        {
+            gModelNames.Add(item.ToString());
+        }
+    }
+
+    //-- Need Model Name, Test#, ChannelNo
+    private void Retrieve_TestData_For_Model()
+    {
+        if (gTargetModel == null || gTargetModel.Length < 3 || 
+            gChannelName == null || gChannelName.Length < 3 ||
+            gTestNumber == null || gTestNumber.Length < 3)
+        {
+            Alert("Model, TestNo, Channel을 선택해야 합니다");
+            return;
+        }
+
+        int iTestNo = int.Parse(gTestNumber);
+        string strModel = gTargetModel;
+        if (gChannelName == "Channel1")
+            gFieldName = "value1";
+        else if (gChannelName == "Channel2")
+            gFieldName = "value2";
+        else if (gChannelName == "Channel3")
+            gFieldName = "value3";
+
+
+        using (var db = new FimsDbContext())
+        {
+            gListCtq = (from sheet in db.Tsheets
+                        from item in db.Titems
+                        orderby sheet.InspectionEndDateTime
+                        where sheet.ProductModel == gTargetModel &&
+                             sheet.Id == item.TsheetId &&
+                             item.TestNo == iTestNo
+                        select new CPK_Items {
+                                sn = sheet.ProductSerial,
+                                workdate = sheet.InspectionEndDateTime,
+                                value1 = (float)(item.Ch1Data == null ? 0.0 : float.Parse(item.Ch1Data)),
+                                value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
+                                value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
+/*                                value1 = (float) (item.Ch1Data == null ? 0.0 : float.Parse(item.Ch1Data)),
+                                value3 = (float) (item.Ch3Data == null ? 0.0 : float.Parse(item.Ch1Data))
+*/
+                        }).ToList();
+            gCounter = gListCtq.Count();
+        }
+    }
+
+    private async Task Alert(string message)
+    {
+        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
+    }
+}

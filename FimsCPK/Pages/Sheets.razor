@@ -1,0 +1,106 @@
+﻿@page "/sheets"
+
+@using FimsCPK.Models;
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+
+<style>
+    .k-grid tbody {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 0.5;
+        font-size: 12px;
+        font-family: calibri;
+        /* background-color: lightyellow;*/
+    }
+
+    .k-grid-header .k-header {
+        font-weight: bold;
+        font-size: 14px;
+        font-family: calibri;
+        padding: 1px;
+        margin: 1px;
+        text-align: center;
+        background-color: lightcyan;
+    }
+</style>
+
+
+<PageTitle>Fims Dashboard</PageTitle>
+
+        <TelerikCard>
+
+            <CardHeader>
+                &nbsp;&nbsp;&nbsp
+                <label for="myIncludeDate">&nbsp;&nbsp;&nbsp;기간지정</label>
+                <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
+                <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
+                                   BottomView="@CalendarView.Year"
+                                   Format="yyyy-mm" Width="120px"></TelerikDatePicker>
+                ~
+                <TelerikDatePicker @bind-Value="@gEndYear"
+                           BottomView="@CalendarView.Year"
+                                   Format="yyyy-mm" Width="120px"></TelerikDatePicker>
+
+                <label for="myManageSite"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
+                <TelerikTextBox Id="myManageSite" @bind-Value="@gStringManageSite" Width="150px" />
+                <label for="myCountry"> &nbsp;&nbsp;&nbsp;&nbsp;검사자:</label>
+                <TelerikTextBox Id="myCountry" @bind-Value="@gStringCountry" Width="150px" />
+                <label for="myCustomer"> &nbsp;&nbsp;&nbsp;&nbsp;마감자:</label>
+                <TelerikTextBox Id="myCustomer" @bind-Value="@gStringCustomer" Width="150px" />
+                &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;
+                <br />
+                <TelerikButton ThemeColor="success" OnClick="@SearchRecord" Icon="FontIcon.Search">검색</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
+            </CardHeader>
+
+
+            <CardBody>
+                <TelerikGrid Class="inspection-grid"
+                             Data="@gSheetList"
+                             ConfirmDelete="true"
+                             Pageable="true"
+                             Groupable="true"
+                             Sortable="true"
+                             FilterMode="GridFilterMode.FilterMenu"
+                             Resizable="true"
+                             Reorderable="true"
+                             EditMode="GridEditMode.Popup"
+                             SelectionMode="GridSelectionMode.Multiple"
+                             OnStateInit="@((GridStateEventArgs<Tsheet> args) => OnStateInit(args))"
+                             PageSize=@gPageSize
+                             Navigable="true"
+                             Width="85vw"
+                             Height="82vh">
+                    <GridSettings>
+                        <GridPagerSettings InputType="PagerInputType.Buttons"
+                                           PageSizes="@gPageList"
+                                           ButtonCount="20"
+                                           Position="PagerPosition.Top">
+                        </GridPagerSettings>
+                    </GridSettings>
+
+                    <GridColumns>
+                        <GridColumn Field=@nameof(Tsheet.Id) Width="30px" Title="Id" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.ProductModel) Width="60px" Title="모델" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.ProductSerial) Width="40px" Title="S/N" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.Customer) Width="60px" Title="고객" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.EndUser) Width="60px" Title="EndUser" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.InspectorName) Width="40px" Title="검사자" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.InspectionStartDateTime) Width="80px" Title="시작시간" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.InspectionEndDateTime) Width="80px" Title="종료시간" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.CloserName) Width="40px" Title="마감자" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.ClosingStartDateTime) Width="80px" Title="시작시간" Sortable=true />
+                        <GridColumn Field=@nameof(Tsheet.ClosingEndDateTime) Width="80px" Title="종료시간" Sortable=true />
+                    </GridColumns>
+
+                </TelerikGrid>
+            </CardBody>
+
+
+
+        </TelerikCard>
+
+
+

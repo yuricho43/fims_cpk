@@ -1,0 +1,123 @@
+﻿@page "/"
+
+@using FimsCPK.Models;
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+
+<PageTitle>Index</PageTitle>
+
+<h1>FIMS CPK 관리 툴</h1>
+
+<h7>----------------------------------------------------------------------------------------------------------------------------------------</h7>
+<br/>
+<h7>0. Home   : FIMS 통계 (모델리스트, 검사수)</h7>
+<br />
+<h7>1. 검사리스트 : 검사결과 일람표</h7>
+<br />
+<h7>2. CPK 관리: CPK 관리 화면 : CTQ항목, UCL, LCL, Graph, Cpk 값 (Model명, Test항목, 기간) </h7>
+<br />
+<h7>3. 장비 정보: </h7>
+<br />
+<h7>4. Admin : Register Users</h7>
+<br />
+<h7>----------------------------------------------------------------------------------------------------------------------------------------</h7>
+<TelerikTileLayout Columns="6"
+                   ColumnWidth="18%"
+                   RowHeight="200px"
+                   Reorderable="true"
+                   Resizable="true">
+    <TileLayoutItems>
+       <TileLayoutItem HeaderText="모델별 통계" RowSpan="2"  ColSpan="2">
+            <Content>
+                전체 모델 수 = @gTotalNum
+                <TelerikGrid Class="total"
+                             Data="@gModelCount"
+                             Pageable="false"
+                             Groupable="false"
+                             Sortable="true"
+                             Resizable="true"
+                             Navigable="true"
+                             Height="90%">
+                    <GridColumns>
+                        <GridColumn Field=@nameof(ModelCount.model) Width="60px" Title="모델" Sortable=true />
+                        <GridColumn Field=@nameof(ModelCount.count) Width="30px" Title="검사수량" Sortable=true TextAlign="ColumnTextAlign.Right" />
+                    </GridColumns>
+                </TelerikGrid>
+            </Content>
+        </TileLayoutItem>
+
+        <TileLayoutItem HeaderText="모델별 통계" RowSpan="2" ColSpan="4">
+            <Content>
+                <TelerikChart Height="90%">
+                    <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
+                    <ChartLegend Visible="true"></ChartLegend>
+                    <ChartSeriesItems>
+                        <ChartSeries Type="ChartSeriesType.Column"
+                                     Name="모델 수량"
+                                     Data="@gModelCount"
+                                     Field="count">
+                        </ChartSeries>
+                    </ChartSeriesItems>
+
+                    <ChartValueAxes>
+                        <ChartValueAxis>
+                            <ChartValueAxisTitle Text="검사 모델수" />
+                            <ChartValueAxisMajorGridLines Visible="true" />
+                            <ChartValueAxisPlotBands>
+                                <ChartValueAxisPlotBand From="100" To="200" Color="#00cc00" Opacity="0.3"></ChartValueAxisPlotBand>
+                            </ChartValueAxisPlotBands>
+                        </ChartValueAxis>
+                    </ChartValueAxes>
+
+                    <ChartCategoryAxes>
+                        <ChartCategoryAxis Categories="@Categories" Visible="false">
+                            <ChartCategoryAxisPlotBands>
+                                <ChartCategoryAxisPlotBand From="10" To="50" Color="#440099" Opacity="0.3"></ChartCategoryAxisPlotBand>
+                            </ChartCategoryAxisPlotBands>
+                        </ChartCategoryAxis>
+                    </ChartCategoryAxes>
+                </TelerikChart>
+
+            </Content>
+        </TileLayoutItem>
+    </TileLayoutItems>
+</TelerikTileLayout>
+
+@code{
+    public List<Tsheet> gSheetList { get; set; }
+    public class ModelCount
+    {
+        public string model { get; set; }
+        public int count { get; set; }
+    }
+    List<ModelCount> gModelCount;
+    public int gTotalNum = 0;
+    public string[] Categories = {"1", "2"};
+
+    protected override async Task OnInitializedAsync()
+    {
+        Retrieve_Models();
+    }
+
+    private void Retrieve_Models()
+    {
+        using (var db = new FimsDbContext())
+        {
+            gSheetList = db.Tsheets.ToList();
+        }
+
+        var models = from sheet in gSheetList
+                     orderby sheet.ProductModel
+                     group sheet by sheet.ProductModel into grp
+                     select new ModelCount() { model = grp.Key, count = grp.Count() };
+        gModelCount = models.ToList();
+        gTotalNum = gModelCount.Count;
+        Categories = new string[gTotalNum];
+        int i = 0;
+        foreach (var item in gModelCount)
+        {
+            Categories[i++] = item.model;
+        }
+    }
+}
