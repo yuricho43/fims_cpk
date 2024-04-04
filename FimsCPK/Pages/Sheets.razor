@@ -44,12 +44,18 @@
                            BottomView="@CalendarView.Month"
                            Format="yyyy-MM-dd" Width="140px"></TelerikDatePicker>
 
+                <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
+                <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gStringModel"
+                         Placeholder="Select an item..." ClearButton="true" Filterable="true" TextField="MyTextField" ValueField="MyValueField" AllowCustom= "true">
+                </TelerikComboBox>
+                @*
                 <label for="myManageSite"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
-                <TelerikTextBox Id="myManageSite" @bind-Value="@gStringManageSite" Width="150px" />
+                <TelerikTextBox Id="myManageSite" @bind-Value="@gStringModel" Width="150px" />
                 <label for="myCountry"> &nbsp;&nbsp;&nbsp;&nbsp;검사자:</label>
-                <TelerikTextBox Id="myCountry" @bind-Value="@gStringCountry" Width="150px" />
+                <TelerikTextBox Id="myCountry" @bind-Value="@gStringInspector" Width="150px" />
                 <label for="myCustomer"> &nbsp;&nbsp;&nbsp;&nbsp;마감자:</label>
-                <TelerikTextBox Id="myCustomer" @bind-Value="@gStringCustomer" Width="150px" />
+                <TelerikTextBox Id="myCustomer" @bind-Value="@gStringCloser" Width="150px" />
+                *@
                 &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;
                 <TelerikButton ThemeColor="success" OnClick="@SearchRecord" Icon="FontIcon.Search">검색</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
             </CardHeader>
@@ -59,7 +65,7 @@
                 <TelerikGrid Class="inspection-grid"
                              Data="@gSheetList"
                              ConfirmDelete="true"
-                             Pageable="true"
+                             Pageable="false"
                              Groupable="true"
                              Sortable="true"
                              FilterMode="GridFilterMode.FilterMenu"

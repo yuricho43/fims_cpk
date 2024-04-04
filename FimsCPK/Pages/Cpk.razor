@@ -47,7 +47,7 @@
         Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
 
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
-        <TelerikComboBox Data="@gModelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="@gTargetModel"
+        <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel"
                          Placeholder="Select an item..." ClearButton="true" Filterable="true">
         </TelerikComboBox>  
         
@@ -88,7 +88,6 @@
 
                             <GridToolBarTemplate>
                                 <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">Export to Excel</GridCommandButton>
-                                <label class="k-checkbox-label"><TelerikCheckBox @bind-Value="@ExportAllPages" />Export All Pages</label>
                             </GridToolBarTemplate>
 
                             <GridSettings>
@@ -99,7 +98,7 @@
                             </GridSettings>
 
                             <GridExport>
-                                <GridExcelExport FileName="telerik-grid-export" AllPages="true" />
+                                <GridExcelExport FileName="@gStrFilename" AllPages="true" />
                             </GridExport>
 
                             <GridColumns>
@@ -177,6 +176,7 @@
     public int gSpanYear = 0;
     public int gPageSize = 100;
     bool ExportAllPages { get; set; }
+    string gStrFilename { get; set; }
 
     public class CPK_Items
     {
@@ -190,7 +190,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        gStartYear.AddMonths(-12);
+        gStrFilename = "Cpk_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
+        gStartYear = gEndYear.AddMonths(-12);
         List_Models();
     }
 

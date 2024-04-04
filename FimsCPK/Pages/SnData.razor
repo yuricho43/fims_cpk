@@ -1,0 +1,170 @@
+﻿@page "/sndata"
+
+@using FimsCPK.Models;
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+@using Telerik.SvgIcons;
+@inject IJSRuntime JsRuntime
+
+<style>
+    .k-grid tbody {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 0.5;
+        font-size: 12px;
+        font-family: calibri;
+        /* background-color: lightyellow;*/
+    }
+
+    .k-grid-header .k-header {
+        font-weight: bold;
+        font-size: 14px;
+        font-family: calibri;
+        padding: 1px;
+        margin: 1px;
+        text-align: center;
+        background-color: lightcyan;
+    }
+</style>
+
+
+<PageTitle>Fims Dashboard</PageTitle>
+
+<TelerikCard>
+
+    <CardHeader>
+        &nbsp;&nbsp;&nbsp
+        <label for="mySerialNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
+        <TelerikTextBox Id="mySerialNum" @bind-Value="@gSerialNumber" Width="150px" />
+        &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Serial" Icon="FontIcon.Search">테스트 결과 검색</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
+    </CardHeader>
+
+    <CardBody>
+
+        <TelerikGrid Class="item-grid-info"
+                     Data="@gSheetList"
+                     ConfirmDelete="true"
+                     Pageable="false"
+                     Groupable="false"
+                     FilterMode="GridFilterMode.None"
+                     Sortable="false"
+                     Reorderable="true"
+                     PageSize=@gPageSize
+                     Height="100%">
+            <GridColumns>
+                <GridColumn Field=@nameof(Tsheet.Id) Width="30px" Title="Id" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.ProductModel) Width="60px" Title="모델" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.ProductSerial) Width="40px" Title="S/N" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.Customer) Width="60px" Title="고객" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.EndUser) Width="60px" Title="EndUser" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.InspectorName) Width="40px" Title="검사자" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.InspectionStartDateTime) Width="80px" Title="시작시간" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.InspectionEndDateTime) Width="80px" Title="종료시간" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.CloserName) Width="40px" Title="마감자" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.ClosingStartDateTime) Width="80px" Title="시작시간" Sortable=true />
+                <GridColumn Field=@nameof(Tsheet.ClosingEndDateTime) Width="80px" Title="종료시간" Sortable=true />
+            </GridColumns>
+        </TelerikGrid>
+
+        <TelerikGrid Class="item-grid"
+                     Data="@gItemList"
+                     ConfirmDelete="true"
+                     Pageable="false"
+                     Groupable="false"
+                     Sortable="false"
+                     FilterMode="GridFilterMode.FilterMenu"
+                     Resizable="true"
+                     Reorderable="true"
+                     EditMode="GridEditMode.Popup"
+                     PageSize=@gPageSize
+                     Navigable="true"
+                     Height="100%">
+
+            <GridToolBarTemplate>
+                <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">Export to Excel</GridCommandButton>
+            </GridToolBarTemplate>
+
+            <GridSettings>
+                <GridPagerSettings InputType="PagerInputType.Buttons"
+                                   ButtonCount="20"
+                                   Position="PagerPosition.Top">
+                </GridPagerSettings>
+            </GridSettings>
+
+            <GridExport>
+                <GridExcelExport FileName="telerik-grid-export" AllPages="true" />
+            </GridExport>
+
+            <GridColumns>
+                <GridColumn Field=@nameof(Titem.TestNo) Width="30px" Title="테스트번호" Sortable=true />
+                <GridColumn Field=@nameof(Titem.Category) Width="60px" Title="대분류" Sortable=true />
+                <GridColumn Field=@nameof(Titem.Title) Width="30px" Title="검사항목" Sortable=true />
+                <GridColumn Field=@nameof(Titem.Unit) Width="30px" Title="단위" Sortable=true />
+                <GridColumn Field=@nameof(Titem.Channels) Width="30px" Title="#CH" Sortable=true />
+                <GridColumn Field=@nameof(Titem.ExpressionMode) Width="30px" Title="표현방식" Sortable=true />
+                <GridColumn Field=@nameof(Titem.Ch1Data) Width="30px" Title="CH1값" Sortable=true />
+                <GridColumn Field=@nameof(Titem.Ch2Data) Width="30px" Title="CH2값" Sortable=true />
+                <GridColumn Field=@nameof(Titem.Ch3Data) Width="30px" Title="CH3값" Sortable=true />
+                <GridColumn Field=@nameof(Titem.CreatedOn) Width="30px" Title="생성일" Sortable=true />
+            </GridColumns>
+
+        </TelerikGrid>
+    </CardBody>
+
+</TelerikCard>
+
+@code {
+    public List<Tsheet> gSheetList { get; set; }
+    public List<Titem> gItemList { get; set; }
+
+    private string gSerialNumber = "B1L00198";
+    private int gCounter = 0;
+
+    public int gPageSize = 100;
+    bool ExportAllPages { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private void Retrieve_TestData_For_Serial()
+    {
+        Get_Equipment_Info(gSerialNumber);
+    }
+
+    private void Get_Equipment_Info(string strSN)
+    {
+        int iSheetId = -1;
+        //--- if alread models are listed-up, skip
+        if (strSN == null || strSN.Length < 5)
+            return;
+
+        using (var db = new FimsDbContext())
+        {
+            gSheetList = (from sheet in db.Tsheets
+                          orderby sheet.InspectionEndDateTime
+                          where sheet.ProductSerial == strSN
+                          select sheet).ToList();
+            gCounter = gSheetList.Count();
+            if (gCounter <= 0)
+                return;
+
+            iSheetId = gSheetList[0].Id;
+
+            gItemList = (from item in db.Titems
+                         orderby item.TestNo
+                         where item.TsheetId == iSheetId
+                         select item).ToList();
+            gCounter = gItemList.Count();
+
+        }
+    }
+
+    private async Task Alert(string message)
+    {
+        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
+    }
+}
