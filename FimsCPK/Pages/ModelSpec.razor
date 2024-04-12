@@ -41,22 +41,21 @@
                          Placeholder="Select an item..." ClearButton="true" Filterable="true" TextField="MyTextField" ValueField="MyValueField" AllowCustom="true">
         </TelerikComboBox>
         &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Serial" Icon="FontIcon.Search">검사스펙 보기</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
+        <TelerikButton ThemeColor="success" OnClick="@Retrieve_Model_Specs" Icon="FontIcon.Search">검사스펙 보기</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
     </CardHeader>
 
     <CardBody>
 
         <TelerikGrid Class="item-grid"
-                     Data="@gItemList"
+                     Data="@gSpecItemList"
                      ConfirmDelete="true"
                      Pageable="false"
                      Groupable="false"
                      Sortable="false"
-                     FilterMode="GridFilterMode.FilterMenu"
+                     FilterMode="GridFilterMode.None"
                      Resizable="true"
                      Reorderable="true"
                      EditMode="GridEditMode.Popup"
-                     PageSize=@gPageSize
                      Navigable="true"
                      Height="100%">
 
@@ -76,16 +75,32 @@
             </GridExport>
 
             <GridColumns>
-                <GridColumn Field=@nameof(Titem.TestNo) Width="30px" Title="테스트번호" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Category) Width="60px" Title="대분류" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Title) Width="30px" Title="검사항목" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Unit) Width="30px" Title="단위" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Channels) Width="30px" Title="#CH" Sortable=true />
-                <GridColumn Field=@nameof(Titem.ExpressionMode) Width="30px" Title="표현방식" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Ch1Data) Width="30px" Title="CH1값" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Ch2Data) Width="30px" Title="CH2값" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Ch3Data) Width="30px" Title="CH3값" Sortable=true />
-                <GridColumn Field=@nameof(Titem.CreatedOn) Width="30px" Title="생성일" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Category) Width="50px" Title="Category" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.TestNo) Width="20px" Title="TestNo" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Title) Width="60px" Title="Title" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Unit) Width="20px" Title="Unit" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Channels) Width="20px" Title="채널수" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Applicable) Width="20px" Title="적용" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.ExpressionMode) Width="30px" Title="표현방법" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Example) Width="50px" Title="Example" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Ch1Ucl) Width="30px" Title="Ch1UCL" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Ch1Lcl) Width="30px" Title="Ch1LCL" Sortable=true />
+                @if (@gNumChannel > 1)
+                {
+                    <GridColumn Field=@nameof(TspecItem.Ch2Ucl) Width="30px" Title="Ch2UCL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch2Lcl) Width="30px" Title="Ch2LCL" Sortable=true />
+                }
+                @if (@gNumChannel > 2)
+                {
+                    <GridColumn Field=@nameof(TspecItem.Ch3Ucl) Width="30px" Title="Ch3UCL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch3Lcl) Width="30px" Title="Ch3LCL" Sortable=true />
+                }
+                @if (@gNumChannel > 3)
+                {
+                    <GridColumn Field=@nameof(TspecItem.Ch4Ucl) Width="30px" Title="Ch4UCL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch4Lcl) Width="30px" Title="Ch4LCL" Sortable=true />
+                }
+
             </GridColumns>
 
         </TelerikGrid>
@@ -96,49 +111,49 @@
 @code {
     static List<string> gModelNames = new List<string>();
     private string gStringModel = "";
-    public List<Tsheet> gSheetList { get; set; }
-    public List<Titem> gItemList { get; set; }
-
-    private string gSerialNumber = "B1L00198";
+    public List<TspecItem> gSpecItemList { get; set; }
     private int gCounter = 0;
+    public int gNumChannel { get; set; }
 
-    public int gPageSize = 100;
     bool ExportAllPages { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        gNumChannel = 4;
         List_Models();
     }
 
-    private void Retrieve_TestData_For_Serial()
+    private void Retrieve_Model_Specs()
     {
-        Get_Equipment_Info(gSerialNumber);
+        Get_Model_Specs(gStringModel);
     }
 
-    private void Get_Equipment_Info(string strSN)
+    private void Get_Model_Specs(string strModel)
     {
         int iSheetId = -1;
         //--- if alread models are listed-up, skip
-        if (strSN == null || strSN.Length < 5)
+        if (strModel == null || strModel.Length < 2)
             return;
 
+        gNumChannel = 4;
+ 
         using (var db = new FimsDbContext())
         {
-            gSheetList = (from sheet in db.Tsheets
-                          orderby sheet.InspectionEndDateTime
-                          where sheet.ProductSerial == strSN
-                          select sheet).ToList();
-            gCounter = gSheetList.Count();
+            var listCh = (from models in db.TspecModels
+                          where models.ProductModel == strModel
+                          select models.NumChannel).ToList();
+ 
+            if (listCh.Count > 0)
+                gNumChannel = (int)(listCh[0]);
+
+            gSpecItemList = (from models in db.TspecModels
+                             from items in db.TspecItems
+                             orderby items.TestNo
+                             where models.ProductModel == strModel && models.Id == items.TspecModelId
+                             select items).ToList();
+            gCounter = gSpecItemList.Count();
             if (gCounter <= 0)
                 return;
-
-            iSheetId = gSheetList[0].Id;
-
-            gItemList = (from item in db.Titems
-                         orderby item.TestNo
-                         where item.TsheetId == iSheetId
-                         select item).ToList();
-            gCounter = gItemList.Count();
 
         }
     }
@@ -150,16 +165,16 @@
 
     private void List_Models()
     {
+        gModelNames.Clear();
         //--- if alread models are listed-up, skip
         if (gModelNames.Count > 0)
             return;
 
         using (var db = new FimsDbContext())
         {
-            gModelNames = (from sheet in db.Tsheets
-                           orderby sheet.ProductModel
-                           group sheet by sheet.ProductModel into grp
-                           select grp.Key).ToList();
+            gModelNames = (from models in db.TspecModels
+                           orderby models.ProductModel
+                           select models.ProductModel).ToList();
         }
     }
 
