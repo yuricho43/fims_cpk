@@ -1,21 +1,95 @@
 ﻿@inherits LayoutComponentBase
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+@using Telerik.SvgIcons;
 
 <TelerikRootComponent>
-<PageTitle>FimsCPK</PageTitle>
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+    <div class="header">
+        <div class="nav-container" style="margin-right: 2em;">
+            <div class="menu-button">
+                <TelerikButton Icon="@SvgIcon.Menu" OnClick="ToggleMenuDrawer"></TelerikButton>
+            </div>
+            <img style="width: 32px;" src="images/fimsinspect.svg">
+            <div class="title">
+                <h1>@($"{Constants.FimsCpkTitle} ({Constants.FimsCpkVersion})")</h1>
+            </div>
+            @{
+                if (!WindowWidthSmall)
+                {
+                    <DigitalClock></DigitalClock>
+                }
+            }
+        </div>
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="http://192.168.24.249:5000" target="_blank">FIMS</a>
-        </div>
-
-        <article class="content px-4">
+    <TelerikDrawer @ref="FimsCpkDrawer"
+                   Data="@FimsCpkDrawerItems"
+                   Expanded="@DrawerExpanded"
+                   ExpandedChanged="((bool newValue) => ExpandedChangedHandler(newValue))"
+                   Width="190px" Mode="DrawerMode.Push" Position="DrawerPosition.Start" MiniMode="true">
+        <DrawerContent>
             @Body
-        </article>
-    </main>
-</div>
+        </DrawerContent>
+    </TelerikDrawer>
+
 </TelerikRootComponent>
+
+@code {
+    bool DrawerExpanded { get; set; }
+    bool WindowWidthSmall { get; set; }
+
+    TelerikDrawer<DrawerItem> FimsCpkDrawer { get; set; }
+    public IEnumerable<DrawerItem> FimsCpkDrawerItems { get; set; }
+
+
+    List<DrawerItem> CpkPages { get; set; } = new List<DrawerItem>
+    {
+        new DrawerItem { Text = "Home", Url = "/", Icon =SvgIcon.Home },
+        new DrawerItem { Separator = true },
+        new DrawerItem { Text = "검사리스트", Url = "/sheets", Icon = SvgIcon.Grid },
+        new DrawerItem { Text = "CPK관리", Url = "/cpk", Icon = SvgIcon.Search },
+        new DrawerItem { Text = "검사정보", Url = "/sndata", Icon = SvgIcon.Data },
+        new DrawerItem { Text = "검사스펙", Url = "/modelspec", Icon = SvgIcon.Sparkles },
+        new DrawerItem { Separator = true },
+        new DrawerItem { Text = "관리자", Url = "/adminpage", Icon = SvgIcon.Eyedropper },
+        new DrawerItem { Separator = true }
+    };
+
+    public class DrawerItem
+    {
+        public string Text { get; set; }
+        public ISvgIcon Icon { get; set; }
+        public string Url { get; set; }
+        public bool Separator { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        DrawerExpanded = true;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        FimsCpkDrawerItems = CpkPages;
+        StateHasChanged();
+    }
+
+    async Task ExpandedChangedHandler(bool value)
+    {
+        DrawerExpanded = value;
+    }
+
+    async Task ToggleMenuDrawer()
+    {
+        if (DrawerExpanded)
+        {
+            await FimsCpkDrawer.CollapseAsync();
+        }
+        else
+        {
+            await FimsCpkDrawer.ExpandAsync();
+        }
+    }
+}
+

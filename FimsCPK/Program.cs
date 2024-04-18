@@ -14,6 +14,7 @@ builder.Services.AddServerSideBlazor();
 
 //--- yscho add ----------------------
 builder.Services.AddTelerikBlazor();
+builder.Services.AddBlazorBootstrap();
 //------------------------------------
 
 var app = builder.Build();

@@ -7,8 +7,8 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>FIMS CPK 관리 툴</h1>
-
+<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 검사한 모델 통계 </div>
+@*
 <h4>----------------------------------------------------------------------------------------------------------------------------------------</h4>
 <br/>
 <h4>0. Home   : FIMS 통계 (모델리스트, 검사수)</h4>
@@ -22,6 +22,7 @@
 <h4>4. Admin : Register Users</h4>
 <br />
 <h4>----------------------------------------------------------------------------------------------------------------------------------------</h4>
+*@
 <TelerikTileLayout Columns="6"
                    ColumnWidth="18%"
                    RowHeight="200px"
@@ -105,13 +106,13 @@
         using (var db = new FimsDbContext())
         {
             gSheetList = db.Tsheets.ToList();
-        }
 
-        var models = from sheet in gSheetList
+            var models = from sheet in db.Tsheets
                      orderby sheet.ProductModel
                      group sheet by sheet.ProductModel into grp
                      select new ModelCount() { model = grp.Key, count = grp.Count() };
-        gModelCount = models.ToList();
+            gModelCount = models.ToList();
+        }
         gTotalNum = gModelCount.Count;
         Categories = new string[gTotalNum];
         int i = 0;
