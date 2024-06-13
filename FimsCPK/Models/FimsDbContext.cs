@@ -17,6 +17,8 @@ public partial class FimsDbContext : DbContext
 
     public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
 
+    public virtual DbSet<CpkItem> CpkItems { get; set; }
+
     public virtual DbSet<Titem> Titems { get; set; }
 
     public virtual DbSet<Tsheet> Tsheets { get; set; }
@@ -25,6 +27,9 @@ public partial class FimsDbContext : DbContext
 
     public virtual DbSet<TspecModel> TspecModels { get; set; }
 
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    // #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+    //     => optionsBuilder.UseSqlServer("Data Source=fims.fstc.co.kr;Initial Catalog=FimsDb;TrustServerCertificate=True;User Id=sa;Password=Fst23841!");
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // Get ConnectionString from appsettings.json
@@ -32,12 +37,8 @@ public partial class FimsDbContext : DbContext
             .AddJsonFile("appsettings.json")
             .Build();
 
-        optionsBuilder.UseSqlServer(config.GetConnectionString("DefaultConnectionInside"));
+        optionsBuilder.UseSqlServer(config.GetConnectionString("DefaultConnection"));
     }
-    /*
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-    => optionsBuilder.UseSqlServer("Data Source=192.168.24.249;Initial Catalog=FimsDb;TrustServerCertificate=True;User Id=sa;Password=Fst23841!");
-    */
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +54,38 @@ public partial class FimsDbContext : DbContext
             entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
             entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
             entity.Property(e => e.UserName).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<CpkItem>(entity =>
+        {
+            entity.HasNoKey();
+
+            entity.Property(e => e.Ch1Lcl)
+                .HasMaxLength(10)
+                .HasColumnName("Ch1LCL");
+            entity.Property(e => e.Ch1Ucl)
+                .HasMaxLength(10)
+                .HasColumnName("Ch1UCL");
+            entity.Property(e => e.Ch2Lcl)
+                .HasMaxLength(10)
+                .HasColumnName("Ch2LCL");
+            entity.Property(e => e.Ch2Ucl)
+                .HasMaxLength(10)
+                .HasColumnName("Ch2UCL");
+            entity.Property(e => e.Ch3Lcl)
+                .HasMaxLength(10)
+                .HasColumnName("Ch3LCL");
+            entity.Property(e => e.Ch3Ucl)
+                .HasMaxLength(10)
+                .HasColumnName("Ch3UCL");
+            entity.Property(e => e.Ch4Lcl)
+                .HasMaxLength(10)
+                .HasColumnName("Ch4LCL");
+            entity.Property(e => e.Ch4Ucl)
+                .HasMaxLength(10)
+                .HasColumnName("Ch4UCL");
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.TestNo).HasMaxLength(10);
         });
 
         modelBuilder.Entity<Titem>(entity =>
