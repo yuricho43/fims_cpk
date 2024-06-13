@@ -108,10 +108,11 @@
             gSheetList = db.Tsheets.ToList();
 
             var models = from sheet in db.Tsheets
-                     orderby sheet.ProductModel
-                     group sheet by sheet.ProductModel into grp
-                     select new ModelCount() { model = grp.Key, count = grp.Count() };
+                         orderby sheet.ProductModel
+                         group sheet by sheet.ProductModel into grp
+                         select new ModelCount() { model = grp.Key, count = grp.Count() };
             gModelCount = models.ToList();
+            gModelCount = gModelCount.OrderByDescending(n => n.count).ToList();
         }
         gTotalNum = gModelCount.Count;
         Categories = new string[gTotalNum];

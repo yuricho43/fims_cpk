@@ -27,7 +27,7 @@
                    Data="@FimsCpkDrawerItems"
                    Expanded="@DrawerExpanded"
                    ExpandedChanged="((bool newValue) => ExpandedChangedHandler(newValue))"
-                   Width="190px" Mode="DrawerMode.Push" Position="DrawerPosition.Start" MiniMode="true">
+                   Width="160px" Mode="DrawerMode.Push" Position="DrawerPosition.Start" MiniMode="true">
         <DrawerContent>
             @Body
         </DrawerContent>
@@ -47,9 +47,11 @@
     {
         new DrawerItem { Text = "Home", Url = "/", Icon =SvgIcon.Home },
         new DrawerItem { Separator = true },
-        new DrawerItem { Text = "검사리스트", Url = "/sheets", Icon = SvgIcon.Grid },
         new DrawerItem { Text = "CPK관리", Url = "/cpk", Icon = SvgIcon.Search },
+        new DrawerItem { Separator = true },
+        new DrawerItem { Text = "검사리스트", Url = "/sheets", Icon = SvgIcon.Grid },
         new DrawerItem { Text = "검사정보", Url = "/sndata", Icon = SvgIcon.Data },
+        new DrawerItem { Separator = true },
         new DrawerItem { Text = "검사스펙", Url = "/modelspec", Icon = SvgIcon.Sparkles },
         new DrawerItem { Separator = true },
         new DrawerItem { Text = "관리자", Url = "/adminpage", Icon = SvgIcon.Eyedropper },
@@ -72,6 +74,8 @@
     protected override async Task OnParametersSetAsync()
     {
         FimsCpkDrawerItems = CpkPages;
+        if (FimsCpkDrawer != null)
+            await FimsCpkDrawer.ExpandAsync();
         StateHasChanged();
     }
 
