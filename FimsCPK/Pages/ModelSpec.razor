@@ -83,22 +83,22 @@
                 <GridColumn Field=@nameof(TspecItem.Applicable) Width="20px" Title="적용" Sortable=true />
                 <GridColumn Field=@nameof(TspecItem.ExpressionMode) Width="30px" Title="표현방법" Sortable=true />
                 <GridColumn Field=@nameof(TspecItem.Example) Width="50px" Title="Example" Sortable=true />
-                <GridColumn Field=@nameof(TspecItem.Ch1Ucl) Width="30px" Title="Ch1UCL" Sortable=true />
-                <GridColumn Field=@nameof(TspecItem.Ch1Lcl) Width="30px" Title="Ch1LCL" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Ch1Lcl) Width="30px" Title="Ch1LSL" Sortable=true />
+                <GridColumn Field=@nameof(TspecItem.Ch1Ucl) Width="30px" Title="Ch1USL" Sortable=true />
                 @if (@gNumChannel > 1)
                 {
-                    <GridColumn Field=@nameof(TspecItem.Ch2Ucl) Width="30px" Title="Ch2UCL" Sortable=true />
-                    <GridColumn Field=@nameof(TspecItem.Ch2Lcl) Width="30px" Title="Ch2LCL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch2Lcl) Width="30px" Title="Ch2LSL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch2Ucl) Width="30px" Title="Ch2USL" Sortable=true />
                 }
                 @if (@gNumChannel > 2)
                 {
-                    <GridColumn Field=@nameof(TspecItem.Ch3Ucl) Width="30px" Title="Ch3UCL" Sortable=true />
-                    <GridColumn Field=@nameof(TspecItem.Ch3Lcl) Width="30px" Title="Ch3LCL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch3Lcl) Width="30px" Title="Ch3LSL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch3Ucl) Width="30px" Title="Ch3USL" Sortable=true />
                 }
                 @if (@gNumChannel > 3)
                 {
-                    <GridColumn Field=@nameof(TspecItem.Ch4Ucl) Width="30px" Title="Ch4UCL" Sortable=true />
-                    <GridColumn Field=@nameof(TspecItem.Ch4Lcl) Width="30px" Title="Ch4LCL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch4Lcl) Width="30px" Title="Ch4LSL" Sortable=true />
+                    <GridColumn Field=@nameof(TspecItem.Ch4Ucl) Width="30px" Title="Ch4USL" Sortable=true />
                 }
 
             </GridColumns>

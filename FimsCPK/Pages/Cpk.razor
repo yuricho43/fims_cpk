@@ -57,11 +57,12 @@
                          Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
 
+        @*
         <label for="myChannel"> &nbsp;&nbsp;&nbsp;&nbsp;Channel:</label>
         <TelerikComboBox Data="@gChananelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="@gChannelName"
                          Placeholder="Select an item..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
-
+        *@
         &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Model" Icon="FontIcon.Search">CPK체크</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
     </CardHeader>
@@ -307,7 +308,6 @@
     private string gTargetModel = "";
     private string gTargetNumber = "2009";
     private string gChannelName = "Channel1";
-    private string gFieldName = "Channel1";
     private bool gSetDuration = false;
     private int gCounter = 0;
 
@@ -385,13 +385,6 @@
 
         int iTestNo = int.Parse(gTargetNumber);
         string strModel = gTargetModel;
-        if (gChannelName == "Channel1")
-            gFieldName = "value1";
-        else if (gChannelName == "Channel2")
-            gFieldName = "value2";
-        else if (gChannelName == "Channel3")
-            gFieldName = "value3";
-
 
         using (var db = new FimsDbContext())
         {

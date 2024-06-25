@@ -31,9 +31,9 @@
     <TileLayoutItems>
        <TileLayoutItem HeaderText="모델별 통계" RowSpan="2"  ColSpan="2">
             <Content>
-                <h2>전체 모델 수 = @gTotalNum</h2>
+                <h4>전체 검사 모델 수 = @gTotalNumModel,   전체 검사 수=@gTotalNumInspection</h4>
                 <TelerikGrid Class="total"
-                             Data="@gModelCount"
+                             Data="@gListModels"
                              Pageable="false"
                              Groupable="false"
                              Sortable="true"
@@ -55,8 +55,8 @@
                     <ChartLegend Visible="true"></ChartLegend>
                     <ChartSeriesItems>
                         <ChartSeries Type="ChartSeriesType.Column"
-                                     Name="모델 수량"
-                                     Data="@gModelCount"
+                                     Name="검사 수량"
+                                     Data="@gListModels"
                                      Field="count">
                         </ChartSeries>
                     </ChartSeriesItems>
@@ -92,9 +92,10 @@
         public string model { get; set; }
         public int count { get; set; }
     }
-    List<ModelCount> gModelCount;
-    public int gTotalNum = 0;
-    public string[] Categories = {"1", "2"};
+    List<ModelCount> gListModels;
+    public int gTotalNumModel = 0;
+    public int gTotalNumInspection = 0;
+    public string[] Categories = { "1", "2" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -111,15 +112,17 @@
                          orderby sheet.ProductModel
                          group sheet by sheet.ProductModel into grp
                          select new ModelCount() { model = grp.Key, count = grp.Count() };
-            gModelCount = models.ToList();
-            gModelCount = gModelCount.OrderByDescending(n => n.count).ToList();
+            gListModels = models.ToList();
+            gListModels = gListModels.OrderByDescending(n => n.count).ToList();
         }
-        gTotalNum = gModelCount.Count;
-        Categories = new string[gTotalNum];
+        gTotalNumModel = gListModels.Count;
+        Categories = new string[gTotalNumModel];
         int i = 0;
-        foreach (var item in gModelCount)
+        gTotalNumInspection = 0;
+        foreach (var item in gListModels)
         {
             Categories[i++] = item.model;
+            gTotalNumInspection += item.count;
         }
     }
 }
