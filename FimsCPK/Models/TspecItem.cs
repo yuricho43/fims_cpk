@@ -44,6 +44,4 @@ public partial class TspecItem
     public DateTime CreatedOn { get; set; }
 
     public DateTime? ModifiedOn { get; set; }
-
-    public virtual TspecModel TspecModel { get; set; } = null!;
 }

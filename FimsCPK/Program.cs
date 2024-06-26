@@ -1,4 +1,6 @@
 
+using FimsCPK.Models;
+using FimsCPK.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
@@ -12,9 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
+var cscpk = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<FimsDbContext>(options => options.UseSqlServer(cscpk));
+
 //--- yscho add ----------------------
 builder.Services.AddTelerikBlazor();
 builder.Services.AddBlazorBootstrap();
+builder.Services.AddScoped<CpkService>();
 //------------------------------------
 
 var app = builder.Build();

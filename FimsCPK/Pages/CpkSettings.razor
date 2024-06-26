@@ -1,0 +1,211 @@
+﻿@page "/cpksettings"
+
+@using FimsCPK.Models;
+@using FimsCPK.Services
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+@using Telerik.SvgIcons;
+
+@inject IJSRuntime JsRuntime
+@inject CpkService cpkService
+
+<style>
+    .k-grid tbody {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 0.5;
+        font-size: 12px;
+        font-family: calibri;
+        /* background-color: lightyellow;*/
+    }
+
+    .k-grid-header .k-header {
+        font-weight: bold;
+        font-size: 14px;
+        font-family: calibri;
+        padding: 1px;
+        margin: 1px;
+        text-align: center;
+        background-color: lightcyan;
+    }
+</style>
+
+
+<PageTitle>Fims Dashboard</PageTitle>
+<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> FIMS CPK </div>
+
+<TelerikCard>
+
+    <CardHeader>
+        <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
+        <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
+                         Placeholder="Select Model..." ClearButton="true" Filterable="true">
+        </TelerikComboBox>  
+    </CardHeader>
+
+    <CardBody>
+        <TelerikGrid Data=@gCpkItems EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
+                     OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
+            <GridToolBarTemplate>
+                <GridCommandButton Command="Add" Icon="@SvgIcon.Plus">Add Cpk Item</GridCommandButton>
+            </GridToolBarTemplate>
+            <GridColumns>
+                <GridColumn Field=@nameof(CpkItem.TestNo) Title="TestNo" Editable="true" />
+                <GridColumn Field=@nameof(CpkItem.Ch1Lcl) Title="Ch1LCL" />
+                <GridColumn Field=@nameof(CpkItem.Ch1Ucl) Title="Ch1UCL" />
+                <GridColumn Field=@nameof(CpkItem.Ch2Lcl) Title="Ch2LCL" />
+                <GridColumn Field=@nameof(CpkItem.Ch2Ucl) Title="Ch2UCL" />
+                <GridColumn Field=@nameof(CpkItem.Ch3Lcl) Title="Ch3LCL" />
+                <GridColumn Field=@nameof(CpkItem.Ch3Ucl) Title="Ch3UCL" />
+                <GridCommandColumn>
+                    <GridCommandButton Command="Save" Icon="@SvgIcon.Save" ShowInEdit="true">Update</GridCommandButton>
+                    <GridCommandButton Command="Edit" Icon="@SvgIcon.Pencil">Edit</GridCommandButton>
+                    <GridCommandButton Command="Delete" Icon="@SvgIcon.Trash">Delete</GridCommandButton>
+                    <GridCommandButton Command="Cancel" Icon="@SvgIcon.Cancel" ShowInEdit="true">Cancel</GridCommandButton>
+                </GridCommandColumn>
+            </GridColumns>
+        </TelerikGrid>
+    </CardBody>
+
+</TelerikCard>
+
+@code {
+
+    static List<string> gModelNames = new List<string>();
+    List<CpkItem> gCpkItems { get; set; } = new List<CpkItem>();
+
+    private string gTargetModel = "";
+    private string gTargetNumber = "";
+    private string gChannelName = "Channel1";
+    private int gCounter = 0;
+
+    public int gPageSize = 100;
+    string gLastSelectedModel = "";
+    public bool gCh1Visible { get; set; } = true;
+    public bool gCh2Visible { get; set; } = true;
+    public bool gCh3Visible { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        List_Models();
+    }
+    private void List_Models()
+    {
+        //--- if alread models are listed-up, skip
+        if (gModelNames.Count > 0)
+            return;
+
+        List<CpkItem> tCpkModelList;
+
+        using (var db = new FimsDbContext())
+        {
+            tCpkModelList = db.CpkItems.ToList();
+        }
+
+        var models = from cpkModel in tCpkModelList
+                     orderby cpkModel.Model
+                     group cpkModel by cpkModel.Model into grp
+                     select grp.Key;
+
+        foreach (var item in models)
+        {
+            gModelNames.Add(item.ToString());
+        }
+    }
+
+    private async Task Get_Cpk_Items_For_Model(string strModel)
+    {
+        //--- if alread models are listed-up, skip
+        if (strModel == null || strModel.Length < 3)
+            return;
+
+        List<CpkItem> tCpkModelList;
+
+        using (var db = new FimsDbContext())
+        {
+            gCpkItems = db.CpkItems.Where(x=>x.Model == strModel).ToList();
+        }
+    }
+
+    private async void ModelChangeHandler(object theUserInput)
+    {
+        string selectedModel = theUserInput.ToString();
+        if (selectedModel == gLastSelectedModel)
+            return;
+
+        gLastSelectedModel = selectedModel;
+
+        //--- 해당 모델의 CpkItem을 Listup한다.
+        Get_Cpk_Items_For_Model(selectedModel);
+
+    }
+
+    private async Task Alert(string message)
+    {
+        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
+    }
+
+    void EditHandler(GridCommandEventArgs args)
+    {
+        CpkItem item = (CpkItem)args.Item;
+
+        // prevent opening for edit based on condition
+        // if (item.ID < 3)
+        {
+            //args.IsCancelled = true;// the general approach for cancelling an event
+        }
+
+        Console.WriteLine("Edit event is fired.");
+    }
+
+    async Task UpdateHandler(GridCommandEventArgs args)
+    {
+        CpkItem item = (CpkItem)args.Item;
+
+        // perform actual data source operations here through your service
+        cpkService.UpdateCpkItem(item);
+
+        // update the local view-model data with the service data
+        await Get_Cpk_Items_For_Model(item.Model);
+
+        Console.WriteLine("Update event is fired.");
+    }
+
+    async Task DeleteHandler(GridCommandEventArgs args)
+    {
+        CpkItem item = (CpkItem) args.Item;
+
+        // perform actual data source operation here through your service
+        cpkService.DeleteCpkItem(item.Model, item.TestNo);
+
+        // update the local view-model data with the service data
+        await Get_Cpk_Items_For_Model(item.Model);
+
+        Console.WriteLine("Delete event is fired.");
+    }
+
+    async Task CreateHandler(GridCommandEventArgs args)
+    {
+        CpkItem item = (CpkItem)args.Item;
+
+        // perform actual data source operation here through your service
+        cpkService.CreateCpkItem(item);
+
+        // update the local view-model data with the service data
+        await Get_Cpk_Items_For_Model(item.Model);
+
+        Console.WriteLine("Create event is fired.");
+    }
+
+    async Task CancelHandler(GridCommandEventArgs args)
+    {
+        CpkItem item = (CpkItem)args.Item;
+
+        // if necessary, perform actual data source operation here through your service
+
+        Console.WriteLine("Cancel event is fired.");
+    }
+
+}

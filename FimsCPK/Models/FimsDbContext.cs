@@ -27,18 +27,9 @@ public partial class FimsDbContext : DbContext
 
     public virtual DbSet<TspecModel> TspecModels { get; set; }
 
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    // #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-    //     => optionsBuilder.UseSqlServer("Data Source=fims.fstc.co.kr;Initial Catalog=FimsDb;TrustServerCertificate=True;User Id=sa;Password=Fst23841!");
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        // Get ConnectionString from appsettings.json
-        IConfigurationRoot config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
-            .Build();
-
-        optionsBuilder.UseSqlServer(config.GetConnectionString("DefaultConnection"));
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Data Source=fims.fstc.co.kr;Initial Catalog=FimsDb;TrustServerCertificate=True;User Id=sa;Password=Fst23841!");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,8 +49,6 @@ public partial class FimsDbContext : DbContext
 
         modelBuilder.Entity<CpkItem>(entity =>
         {
-            entity.HasNoKey();
-
             entity.Property(e => e.Ch1Lcl)
                 .HasMaxLength(10)
                 .HasColumnName("Ch1LCL");
@@ -84,7 +73,6 @@ public partial class FimsDbContext : DbContext
             entity.Property(e => e.Ch4Ucl)
                 .HasMaxLength(10)
                 .HasColumnName("Ch4UCL");
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.TestNo).HasMaxLength(10);
         });
 
@@ -112,8 +100,6 @@ public partial class FimsDbContext : DbContext
             entity.ToTable("TSpecItems");
 
             entity.Property(e => e.TspecModelId).HasColumnName("TSpecModelId");
-
-            entity.HasOne(d => d.TspecModel).WithMany(p => p.TspecItems).HasForeignKey(d => d.TspecModelId);
         });
 
         modelBuilder.Entity<TspecModel>(entity =>

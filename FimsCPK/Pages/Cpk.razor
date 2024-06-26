@@ -53,7 +53,8 @@
         </TelerikComboBox>  
         
         <label for="myTestNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
-        <TelerikComboBox Data="@gTestNumbers" Width="200px" @bind-Value="@gTargetNumber"
+        <TelerikComboBox @ref="@ComboBoxRef" 
+            Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber"
                          Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
 
@@ -157,7 +158,7 @@
                                     <ChartValueAxisTitle Text="측정값-Ch1" />
                                     <ChartValueAxisMajorGridLines Visible="true" />
                                     <ChartValueAxisPlotBands>
-                                        <ChartValueAxisPlotBand From="100" To="200" Color="#00cc00" Opacity="0.3"></ChartValueAxisPlotBand>
+                                        <ChartValueAxisPlotBand From="@gCh1Lcl" To="@gCh1Ucl" Color="#00cc00" Opacity="0.1"></ChartValueAxisPlotBand>
                                     </ChartValueAxisPlotBands>
                                 </ChartValueAxis>
                             </ChartValueAxes>
@@ -193,7 +194,7 @@
                                     <ChartValueAxisTitle Text="측정값-Ch2" />
                                     <ChartValueAxisMajorGridLines Visible="true" />
                                     <ChartValueAxisPlotBands>
-                                        <ChartValueAxisPlotBand From="100" To="200" Color="#00cc00" Opacity="0.3"></ChartValueAxisPlotBand>
+                                        <ChartValueAxisPlotBand From="43" To="45" Color="#00cc00" Opacity="0.1"></ChartValueAxisPlotBand>
                                     </ChartValueAxisPlotBands>
                                 </ChartValueAxis>
                             </ChartValueAxes>
@@ -291,7 +292,7 @@
 
 
     static List<string> gModelNames = new List<string>();
-    static List<string> gTestNumbers = new List<string>();
+    List<string> gTestNumbers { get; set; } = new List<string>();
     static string[] gChananelNames = { "Channel1", "Channel2", "Channel3" };
 
     public List<CPK_Items> gListCtq { get; set; }
@@ -306,7 +307,7 @@
     private DateTime gEndYear = DateTime.Now;
 
     private string gTargetModel = "";
-    private string gTargetNumber = "2009";
+    private string gTargetNumber = "";
     private string gChannelName = "Channel1";
     private bool gSetDuration = false;
     private int gCounter = 0;
@@ -319,6 +320,16 @@
     public bool gCh1Visible { get; set; } = true;
     public bool gCh2Visible { get; set; } = true;
     public bool gCh3Visible { get; set; } = true;
+
+    //--- lcl/ucl, lsl,usl
+    public double gCh1Lcl { get; set; } = 42;
+    public double gCh1Ucl { get; set; } = 46;
+    public double gCh2Lcl { get; set; }
+    public double gCh2Ucl { get; set; }
+    public double gCh3Lcl { get; set; }
+    public double gCh3Ucl { get; set; }
+
+    public TelerikComboBox<string, string> ComboBoxRef { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -352,19 +363,29 @@
         }
     }
 
-    private void ModelChangeHandler(object theUserInput)
+    private async void ModelChangeHandler(object theUserInput)
     {
         string selectedModel = theUserInput.ToString();
         if (selectedModel == gLastSelectedModel)
             return;
+
         gLastSelectedModel = selectedModel;
 
         //--- Check Test Items
         gTestNumbers.Clear();
         using (var db = new FimsDbContext())
         {
-            gTestNumbers = db.CpkItems.Where(n => n.Model == gLastSelectedModel).Select(p=>p.TestNo).ToList();
+            var lists = db.CpkItems.Where(n => n.Model == gLastSelectedModel).Select(p => p.TestNo).ToList();
+
+            List<string> temp = lists.ToList();           
+            foreach(var tno in temp)
+            {
+                gTestNumbers.Add("("+tno+"):"+db.TspecItems.Where(x => x.TestNo.ToString() == tno).Select(p=>p.Title).FirstOrDefault());
+            }
+
+            gTargetNumber = gTestNumbers[0];
         }
+        ComboBoxRef.Rebind();
     }
 
     //-- Need Model Name, Test#, ChannelNo
@@ -383,7 +404,9 @@
         string strStartDate = gStartYear.ToString("yyyy-MM-dd");
         string strEndDate = gEndYear.ToString("yyyy-MM-dd");
 
-        int iTestNo = int.Parse(gTargetNumber);
+       
+        String strTestNo = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")")-1);
+        int iTestNo = int.Parse(strTestNo);
         string strModel = gTargetModel;
 
         using (var db = new FimsDbContext())

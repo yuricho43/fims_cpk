@@ -16,6 +16,4 @@ public partial class TspecModel
     public DateTime CreatedOn { get; set; }
 
     public DateTime? ModifiedOn { get; set; }
-
-    public virtual ICollection<TspecItem> TspecItems { get; set; } = new List<TspecItem>();
 }
