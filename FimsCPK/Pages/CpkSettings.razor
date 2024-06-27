@@ -42,11 +42,19 @@
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
         <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
                          Placeholder="Select Model..." ClearButton="true" Filterable="true">
-        </TelerikComboBox>  
+        </TelerikComboBox>
+        @*
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <label for="uclSet"> <span>비율</span></label>
+        <TelerikComboBox Data="@gRatioCL" Width="100px" @bind-Value="@gTargetRatio" 
+                         Placeholder="Select Ratio..." ClearButton="true" Filterable="true">
+        </TelerikComboBox>
+        <TelerikButton ThemeColor="success" OnClick="@SetCL_WithRatio" Icon="FontIcon.Search">LCL/UCL설정</TelerikButton>
+        *@
     </CardHeader>
 
     <CardBody>
-        <h3>LCL/UCL</h3>
+        <h4 style="color:blue"><strong>LCL/UCL-@gTargetModel</strong></h4>
         <TelerikGrid Data=@gCpkItemsCL EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
                      OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
             <GridToolBarTemplate>
@@ -69,7 +77,7 @@
             </GridColumns>
         </TelerikGrid>
 
-        <h3>(참고) LSL/USL</h3>
+        <h4 style="color:blue"><strong>(참고)LSL/USL-@gTargetModel</strong></h4>
         <TelerikGrid Data=@gCpkItemsSL EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
                      OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
             <GridColumns>
@@ -91,9 +99,11 @@
     static List<string> gModelNames = new List<string>();
     List<CpkItem> gCpkItemsCL { get; set; } = new List<CpkItem>();
     List<TspecItem> gCpkItemsSL { get; set; } = new List<TspecItem>();
+    static List<double> gRatioCL = new List<double> { 0.1, 0.2, 0.3 };
 
     private string gTargetModel = "";
     private string gTargetNumber = "";
+    private double gTargetRatio = 0.1;
     private string gChannelName = "Channel1";
     private int gCounter = 0;
 
@@ -102,6 +112,10 @@
     public bool gCh1Visible { get; set; } = true;
     public bool gCh2Visible { get; set; } = true;
     public bool gCh3Visible { get; set; } = true;
+
+    [CascadingParameter]
+    public DialogFactory Dialogs { get; set; }
+    public string gRetMessage { get; set; } = "N";
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,18 +156,22 @@
 
         using (var db = new FimsDbContext())
         {
-            gCpkItemsCL = db.CpkItems.Where(x => x.Model == strModel).ToList();
+            // gCpkItemsCL = db.CpkItems.Where(x => x.Model == strModel).ToList();
+            gCpkItemsCL = cpkService.GetCLValuesForModel(strModel);
+            //--- Get LSL/USL for gCpkItemsCL
+            //    1) TSpecModels에서 Mode TSpecModelId를 구한다.
+            //    2) ModelId와 TestNo가 일치하는 TSpecItems를 구한다.
+            List<int> listTestNo = gCpkItemsCL.Select(x => x.TestNo).ToList();
+            gCpkItemsSL = cpkService.GetSLValuesForModelAndTestNo(strModel, listTestNo);
         }
 
-        //--- Get LSL/USL for gCpkItemsCL
-        //    1) TSpecModels에서 Mode TSpecModelId를 구한다.
-        //    2) ModelId와 TestNo가 일치하는 TSpecItems를 구한다.
+        /*
         using (var db = new FimsDbContext())
-        {
+            {
             int idModel = db.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
-            List<int> listTestNo = gCpkItemsCL.Select(x => x.TestNo).ToList();
             gCpkItemsSL = db.TspecItems.Where(x => idModel == x.TspecModelId && listTestNo.Contains(x.TestNo)).ToList();
-        }
+    }
+    */
     }
 
     private async void ModelChangeHandler(object theUserInput)
@@ -237,5 +255,39 @@
 
         Console.WriteLine("Cancel event is fired.");
     }
+
+    //--- CpkItems의 UCL/LCL을 USL/LSL을 기존으로 범위를 좁혀서 설정한다ㅏ.
+    //    
+    public void SetCL_WithRatio()
+    {
+        ActivateConfirm("정말로 설정하시겠습니까 ?");
+        if (gRetMessage == "N")
+            return;
+
+        //--- gCpkItemsSL 값을 참고하여 gCpkItemsCL 값을 변경한다.
+        double lsl = 0;
+        double usl = 0;
+        foreach (var sl in gCpkItemsSL)
+        {
+            CpkItem cpk = gCpkItemsCL.Where(x => x.TestNo == sl.TestNo).FirstOrDefault();
+        }
+    }
+
+
+    public async Task ActivateConfirm(string strMessage)
+    {
+        bool confirmed;
+        if (string.IsNullOrWhiteSpace("CPK Settings"))
+        {
+            confirmed = await Dialogs.ConfirmAsync(strMessage);
+        }
+        else
+        {
+            confirmed = await Dialogs.ConfirmAsync(strMessage, "CPK Settings");
+        }
+
+        gRetMessage = confirmed ? "Y" : "N";
+    }
+
 
 }

@@ -1,5 +1,6 @@
 ﻿using FimsCPK.Models;
 using Microsoft.EntityFrameworkCore;
+using static Telerik.Blazor.ThemeConstants;
 
 namespace FimsCPK.Services
 {
@@ -125,6 +126,77 @@ namespace FimsCPK.Services
             _dbFimsContext.SaveChanges();
 
             return "Delete successfully";
+        }
+
+        public List<TspecItem> GetSLValuesForModelAndTestNo(string strModel, List<int> listTestNo)
+        {
+            int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
+            List<TspecItem> tCpkItemsSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && listTestNo.Contains(x.TestNo)).ToList();
+            return tCpkItemsSL;
+        }
+
+        public TspecItem GetOneSLValueForModelAndTestNo(string strModel, int TestNo)
+        {
+            int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
+            TspecItem tCpkItemSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && x.TestNo == TestNo).FirstOrDefault();
+            return tCpkItemSL;
+        }
+
+        public List<CpkItem> GetCLValuesForModel(string strModel)
+        {
+            List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel).ToList();
+            return tCpkItemsCL;
+        }
+
+        //--- 특정모델의 TestNo에 대해, ixCh의 SL값을 return
+        public void GetSL(string strModel, string TestNo, int ixCh, ref string strLSL, ref string strUSL)
+        {
+            int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
+            if (ixCh == 1)
+            {
+                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch1Lcl).FirstOrDefault();
+                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch1Ucl).FirstOrDefault(); ;
+            }
+            else if (ixCh == 2)
+            {
+                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch2Lcl).FirstOrDefault();
+                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch2Ucl).FirstOrDefault(); ;
+            }
+            else if (ixCh == 3)
+            {
+                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch3Lcl).FirstOrDefault();
+                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch3Ucl).FirstOrDefault(); ;
+            }
+            else
+            {
+                strLSL = "";
+                strUSL = "";
+            }
+        }
+
+        //--- 특정모델의 TestNo에 대해, ixCh의 SL값을 return
+        public void GetCL(string strModel, string TestNo, int ixCh, ref string strLCL, ref string strUCL)
+        {
+            if (ixCh == 1)
+            {
+                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch1Lcl).FirstOrDefault();
+                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch1Ucl).FirstOrDefault();
+            }
+            else if (ixCh == 2)
+            {
+                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch2Lcl).FirstOrDefault();
+                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch2Ucl).FirstOrDefault();
+            }
+            else if (ixCh == 3)
+            {
+                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch3Lcl).FirstOrDefault();
+                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch3Ucl).FirstOrDefault();
+            }
+            else
+            {
+                strLCL = "";
+                strUCL = "";
+            }
         }
 
     }

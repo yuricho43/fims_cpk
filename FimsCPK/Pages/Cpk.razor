@@ -1,11 +1,13 @@
 ﻿@page "/cpk"
 
 @using FimsCPK.Models;
+@using FimsCPK.Services
 @using Telerik.DataSource
 @using Telerik.DataSource.Extensions
 @using Telerik.FontIcons;
 @using Telerik.SvgIcons;
 @inject IJSRuntime JsRuntime
+@inject CpkService cpkService
 
 <style>
     .k-grid tbody {
@@ -37,7 +39,7 @@
 
     <CardHeader>
         &nbsp;&nbsp;&nbsp
-        <label for="myIncludeDate">&nbsp;&nbsp;&nbsp;기간지정</label>
+        <label for="myIncludeDate" ThemeColor="success" style="color:red ">&nbsp;&nbsp;&nbsp;기간지정</label>
         <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
         <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
                            BottomView="@CalendarView.Month"
@@ -77,7 +79,10 @@
                            Reorderable="true"
                            Resizable="true">
             <TileLayoutItems>
-               <TileLayoutItem HeaderText="모델별 통계" RowSpan="2"  ColSpan="2">
+                <TileLayoutItem HeaderText="@gTargetModel"   RowSpan="4" ColSpan="2">
+                    <HeaderTemplate>
+                        <h4 style="color:blue"><strong>CTQ 값:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
+                    </HeaderTemplate>
                     <Content>
                         <TelerikGrid Class="cpk-grid"
                                      Data="@gListCtq"
@@ -128,7 +133,41 @@
                     </Content>
                </TileLayoutItem>
 
-               <TileLayoutItem HeaderText="CPK 그래프" RowSpan="3"  ColSpan="4">
+                <TileLayoutItem HeaderText="CPK 통계" RowSpan="1" ColSpan="4">
+                    <HeaderTemplate>
+                        <h4 style="color:red"><strong>CPK 통계:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
+                    </HeaderTemplate>
+                    <Content>
+                        <TelerikGrid Data="@gCpkStats"
+                                     @ref="@GridRef"
+                                     Pageable="false"
+                                     Sortable="true"
+                                     FilterMode="@GridFilterMode.None"
+                                     Height="100%">
+
+                            <GridColumns>
+                                <GridColumn Field=@nameof(CPK_Statistics.name) Width="30px" Title="Channel" Sortable=true />
+                                <GridColumn Field=@nameof(CPK_Statistics.num) Width="30px" Title="검사수" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.average) Width="30px" Title="평균" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" HeaderClass="k-justify-content-center demo-font-weight-bold" />
+                                <GridColumn Field=@nameof(CPK_Statistics.stddev) Width="30px" Title="표준편차" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.min) Width="30px" Title="최소값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.max) Width="30px" Title="최대값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.numGood) Width="30px" Title="양품수" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.cp) Width="30px" Title="Cp" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.cpk) Width="30px" Title="Cpk" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.lcl) Width="30px" Title="LCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.ucl) Width="30px" Title="UCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.lsl) Width="30px" Title="LSL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                <GridColumn Field=@nameof(CPK_Statistics.usl) Width="30px" Title="USL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                            </GridColumns>
+                        </TelerikGrid>
+                    </Content>
+                </TileLayoutItem>
+                
+                <TileLayoutItem HeaderText="CPK 그래프" RowSpan="3" ColSpan="4">
+                    <HeaderTemplate>
+                        <h4 style="color:green"><strong>CPK 그래프:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
+                    </HeaderTemplate>
                     <Content>
                         <TelerikChart Height="30%">
                             <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
@@ -194,7 +233,7 @@
                                     <ChartValueAxisTitle Text="측정값-Ch2" />
                                     <ChartValueAxisMajorGridLines Visible="true" />
                                     <ChartValueAxisPlotBands>
-                                        <ChartValueAxisPlotBand From="43" To="45" Color="#00cc00" Opacity="0.1"></ChartValueAxisPlotBand>
+                                        <ChartValueAxisPlotBand From="@gCh2Lcl" To="@gCh2Ucl" Color="#00cc00" Opacity="0.1"></ChartValueAxisPlotBand>
                                     </ChartValueAxisPlotBands>
                                 </ChartValueAxis>
                             </ChartValueAxes>
@@ -228,7 +267,7 @@
                                     <ChartValueAxisTitle Text="측정값-Ch3" />
                                     <ChartValueAxisMajorGridLines Visible="true" />
                                     <ChartValueAxisPlotBands>
-                                        <ChartValueAxisPlotBand From="100" To="200" Color="#00cc00" Opacity="0.3"></ChartValueAxisPlotBand>
+                                        <ChartValueAxisPlotBand From="@gCh3Lcl" To="@gCh3Ucl" Color="#00cc00" Opacity="0.3"></ChartValueAxisPlotBand>
                                     </ChartValueAxisPlotBands>
                                 </ChartValueAxis>
                             </ChartValueAxes>
@@ -236,28 +275,7 @@
                     </Content>
                 </TileLayoutItem>
                 
-                <TileLayoutItem HeaderText="CPK 통계" RowSpan="1"  ColSpan="2">
-                    <Content>
-                        <TelerikGrid Data="@gCpkStats"
-                                     @ref="@GridRef"
-                                     Pageable="false"
-                                     Sortable="true"
-                                     FilterMode="@GridFilterMode.None"
-                                     Height="100%">
 
-                            <GridColumns>
-                                <GridColumn Field=@nameof(CPK_Statistics.name) Width="30px" Title="Channel" Sortable=true />
-                                <GridColumn Field=@nameof(CPK_Statistics.num) Width="30px" Title="검사수" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.average) Width="30px" Title="평균" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" HeaderClass="k-justify-content-center demo-font-weight-bold" />
-                                <GridColumn Field=@nameof(CPK_Statistics.stddev) Width="30px" Title="표준편차" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.min) Width="30px" Title="최소값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.max) Width="30px" Title="최대값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.cp) Width="30px" Title="Cp" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.cpk) Width="30px" Title="Cpk" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                            </GridColumns>
-                        </TelerikGrid>
-                    </Content>
-                </TileLayoutItem>
             </TileLayoutItems>
         </TelerikTileLayout>
     </CardBody>
@@ -280,14 +298,19 @@
         public int num { get; set; }
         public int numSpecIn { get; set; }
         public int numGood { get; set; }
-        public float average { get; set; }
-        public float stddev { get; set; }
-        public float sum { get; set; }
+        public double average { get; set; }
+        public double stddev { get; set; }
+        public double sum { get; set; }
 
-        public float min { get; set; }
-        public float max { get; set; }
-        public float cp { get; set; }
-        public float cpk { get; set; }
+        public double min { get; set; }
+        public double max { get; set; }
+        public double cp { get; set; }
+        public double cpk { get; set; }
+
+        public string lcl {get; set; }
+        public string ucl {get; set; }
+        public string lsl { get; set; }
+        public string usl {get; set; }
     };
 
 
@@ -308,6 +331,7 @@
 
     private string gTargetModel = "";
     private string gTargetNumber = "";
+    private string gTargetOnlyNumber = "";
     private string gChannelName = "Channel1";
     private bool gSetDuration = false;
     private int gCounter = 0;
@@ -333,7 +357,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        gStrFilename = "Cpk_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
+        gStrFilename = "CtqList_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
         gStartYear = gEndYear.AddMonths(-12);
         gCpkStats = new List<CPK_Statistics>();
         List_Models();
@@ -404,9 +428,9 @@
         string strStartDate = gStartYear.ToString("yyyy-MM-dd");
         string strEndDate = gEndYear.ToString("yyyy-MM-dd");
 
-       
-        String strTestNo = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")")-1);
-        int iTestNo = int.Parse(strTestNo);
+
+        gTargetOnlyNumber = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")") - 1);
+        int iTestNo = int.Parse(gTargetOnlyNumber);
         string strModel = gTargetModel;
 
         using (var db = new FimsDbContext())
@@ -486,6 +510,7 @@
         await JsRuntime.InvokeVoidAsync("alert", message); // Alert
     }
 
+    // gTargetModel, gTargetNumber
     private CPK_Statistics GetStatistics(int ixCh, List<CPK_Items> cpkitems)
     {
         List<float> items;
@@ -506,19 +531,65 @@
             return null;
         }
 
+        string strLSL = "";
+        string strUSL = "";
         CPK_Statistics record = new CPK_Statistics();
 
         record.name = "Ch-" + ixCh.ToString();
         record.num = items.Count();
-        if (record.num > 0)
+        if (record.num > 30)
         {
             record.average = items.Average();
             record.min = items.Min();
             record.max = items.Max();
             record.stddev = getStandardDeviation(items);
             record.sum = items.Sum();
-            record.cp = gListCtq.Max(n => n.value1);
-            record.cpk = gListCtq.Max(n => n.value1);
+
+            //--- get lsl,usl, lcl, ucl
+            cpkService.GetSL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
+            record.lsl = strLSL;
+            record.usl = strUSL;
+            cpkService.GetCL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
+            record.lcl = strLSL;
+            record.ucl = strUSL;
+
+
+            if (record.sum != 0)
+            {
+                double dl = double.Parse(record.lcl??"0");
+                double du = double.Parse(record.ucl??"0");
+
+                switch(ixCh)
+                {
+                    case 1:
+                        gCh1Lcl = dl;
+                        gCh1Ucl = du;
+                        break;
+                    case 2:
+                        gCh2Lcl = dl;
+                        gCh2Ucl = du;
+                        break;
+                    case 3:
+                        gCh3Lcl = dl;
+                        gCh3Ucl = du;
+                        break;
+                }
+
+                //--- cpk, cp 계산
+                //    Cp = (UCL-LCL)/(6*표준편차)
+                //    Cpk = MIN( (평균-LSL)/(3*표준편차), (USL-평균)/(3*표준편차))
+                dl = double.Parse(record.lcl ?? "0");
+                du = double.Parse(record.ucl ?? "0");
+                record.cp = (du - dl) / (6 * record.stddev);
+                double cpk1 = (record.average - dl) / (3 * record.stddev);
+                double cpk2 = (du - record.average) / (3 * record.stddev);
+                record.cpk = Math.Min(cpk1, cpk2);
+
+                float fdl = (float) dl;
+                float fdu = (float) du;
+                record.numGood = items.Where(x => x >= fdl && x <= fdu).Count();
+
+            }
         }
 
         return record;
