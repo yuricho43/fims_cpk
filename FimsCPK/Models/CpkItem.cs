@@ -9,7 +9,7 @@ public partial class CpkItem
 
     public string Model { get; set; } = null!;
 
-    public string TestNo { get; set; } = null!;
+    public int TestNo { get; set; }
 
     public string? Ch1Lcl { get; set; }
 

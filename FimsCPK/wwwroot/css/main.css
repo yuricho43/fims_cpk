@@ -800,3 +800,26 @@ span.k-dropdownlist .k-input-inner {
 .k-popup.k-grid-columnmenu-popup {
     width: 260px;
 }
+
+
+.k-grid tbody {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 0.5;
+    font-size: 12px;
+    font-family: calibri;
+    /* background-color: lightyellow;*/
+}
+
+.k-grid-header .k-header {
+    font-weight: bold;
+    font-size: 14px;
+    font-family: calibri;
+    padding: 1px;
+    margin: 1px;
+    text-align: center;
+    background-color: lightcyan;
+}
+
+

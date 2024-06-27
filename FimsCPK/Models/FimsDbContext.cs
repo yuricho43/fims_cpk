@@ -73,7 +73,6 @@ public partial class FimsDbContext : DbContext
             entity.Property(e => e.Ch4Ucl)
                 .HasMaxLength(10)
                 .HasColumnName("Ch4UCL");
-            entity.Property(e => e.TestNo).HasMaxLength(10);
         });
 
         modelBuilder.Entity<Titem>(entity =>

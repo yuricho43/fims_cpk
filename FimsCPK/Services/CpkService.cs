@@ -114,7 +114,7 @@ namespace FimsCPK.Services
             return "Update failed"; ;
         }
 
-        public string DeleteCpkItem(string Model, string TestNo)
+        public string DeleteCpkItem(string Model, int TestNo)
         {
             //=== Delete POManage
             var cpk = _dbFimsContext.CpkItems.FirstOrDefault(p => p.Model == Model && p.TestNo == TestNo);

@@ -46,7 +46,8 @@
     </CardHeader>
 
     <CardBody>
-        <TelerikGrid Data=@gCpkItems EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
+        <h3>LCL/UCL</h3>
+        <TelerikGrid Data=@gCpkItemsCL EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
                      OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
             <GridToolBarTemplate>
                 <GridCommandButton Command="Add" Icon="@SvgIcon.Plus">Add Cpk Item</GridCommandButton>
@@ -67,6 +68,20 @@
                 </GridCommandColumn>
             </GridColumns>
         </TelerikGrid>
+
+        <h3>(참고) LSL/USL</h3>
+        <TelerikGrid Data=@gCpkItemsSL EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
+                     OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
+            <GridColumns>
+                <GridColumn Field=@nameof(TspecItem.TestNo) Title="TestNo" Editable="true" />
+                <GridColumn Field=@nameof(TspecItem.Ch1Lcl) Title="Ch1LSL" />
+                <GridColumn Field=@nameof(TspecItem.Ch1Ucl) Title="Ch1USL" />
+                <GridColumn Field=@nameof(TspecItem.Ch2Lcl) Title="Ch2LSL" />
+                <GridColumn Field=@nameof(TspecItem.Ch2Ucl) Title="Ch2USL" />
+                <GridColumn Field=@nameof(TspecItem.Ch3Lcl) Title="Ch3LSL" />
+                <GridColumn Field=@nameof(TspecItem.Ch3Ucl) Title="Ch3USL" />
+            </GridColumns>
+        </TelerikGrid>
     </CardBody>
 
 </TelerikCard>
@@ -74,7 +89,8 @@
 @code {
 
     static List<string> gModelNames = new List<string>();
-    List<CpkItem> gCpkItems { get; set; } = new List<CpkItem>();
+    List<CpkItem> gCpkItemsCL { get; set; } = new List<CpkItem>();
+    List<TspecItem> gCpkItemsSL { get; set; } = new List<TspecItem>();
 
     private string gTargetModel = "";
     private string gTargetNumber = "";
@@ -91,6 +107,7 @@
     {
         List_Models();
     }
+
     private void List_Models()
     {
         //--- if alread models are listed-up, skip
@@ -125,12 +142,25 @@
 
         using (var db = new FimsDbContext())
         {
-            gCpkItems = db.CpkItems.Where(x=>x.Model == strModel).ToList();
+            gCpkItemsCL = db.CpkItems.Where(x => x.Model == strModel).ToList();
+        }
+
+        //--- Get LSL/USL for gCpkItemsCL
+        //    1) TSpecModels에서 Mode TSpecModelId를 구한다.
+        //    2) ModelId와 TestNo가 일치하는 TSpecItems를 구한다.
+        using (var db = new FimsDbContext())
+        {
+            int idModel = db.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
+            List<int> listTestNo = gCpkItemsCL.Select(x => x.TestNo).ToList();
+            gCpkItemsSL = db.TspecItems.Where(x => idModel == x.TspecModelId && listTestNo.Contains(x.TestNo)).ToList();
         }
     }
 
     private async void ModelChangeHandler(object theUserInput)
     {
+        if (theUserInput == null)
+            return;
+
         string selectedModel = theUserInput.ToString();
         if (selectedModel == gLastSelectedModel)
             return;

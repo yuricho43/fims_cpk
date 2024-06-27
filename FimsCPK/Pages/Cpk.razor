@@ -377,10 +377,10 @@
         {
             var lists = db.CpkItems.Where(n => n.Model == gLastSelectedModel).Select(p => p.TestNo).ToList();
 
-            List<string> temp = lists.ToList();           
+            List<int> temp = lists.ToList();           
             foreach(var tno in temp)
             {
-                gTestNumbers.Add("("+tno+"):"+db.TspecItems.Where(x => x.TestNo.ToString() == tno).Select(p=>p.Title).FirstOrDefault());
+                gTestNumbers.Add("("+tno+"):"+db.TspecItems.Where(x => x.TestNo == tno).Select(p=>p.Title).FirstOrDefault());
             }
 
             gTargetNumber = gTestNumbers[0];
