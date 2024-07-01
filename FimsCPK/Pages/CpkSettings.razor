@@ -10,49 +10,25 @@
 @inject IJSRuntime JsRuntime
 @inject CpkService cpkService
 
-<style>
-    .k-grid tbody {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 0.5;
-        font-size: 12px;
-        font-family: calibri;
-        /* background-color: lightyellow;*/
-    }
-
-    .k-grid-header .k-header {
-        font-weight: bold;
-        font-size: 14px;
-        font-family: calibri;
-        padding: 1px;
-        margin: 1px;
-        text-align: center;
-        background-color: lightcyan;
-    }
-</style>
-
-
+@************************** PAGE TITLE *****************************************************************@
 <PageTitle>Fims Dashboard</PageTitle>
 <div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> LCL/UCL 관리 </div>
 
 <TelerikCard>
-
+    @************************** PAGE HEADER 구성 *************************************************************
+    모델 선택 ==> ModelChangeHandler
+    ********************************************************************************************************@
     <CardHeader>
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
         <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
                          Placeholder="Select Model..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
-        @*
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        <label for="uclSet"> <span>비율</span></label>
-        <TelerikComboBox Data="@gRatioCL" Width="100px" @bind-Value="@gTargetRatio" 
-                         Placeholder="Select Ratio..." ClearButton="true" Filterable="true">
-        </TelerikComboBox>
-        <TelerikButton ThemeColor="success" OnClick="@SetCL_WithRatio" Icon="FontIcon.Search">LCL/UCL설정</TelerikButton>
-        *@
     </CardHeader>
 
+    @************************** PAGE BODY 구성 ***************************************************************
+            특정 모델에 대해 모든 Cpk Test 항목의 LCL/UCL Grid (3 channels) ==> Edit/Delete 가능
+            해당 모델의 LSL/USL Grid (참고용)
+    ********************************************************************************************************@
     <CardBody>
         <h4 style="color:blue"><strong>LCL/UCL-@gTargetModel</strong></h4>
         <TelerikGrid Data=@gCpkItemsCL EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
@@ -88,64 +64,75 @@
                 <GridColumn Field=@nameof(TspecItem.Ch2Ucl) Title="Ch2USL" />
                 <GridColumn Field=@nameof(TspecItem.Ch3Lcl) Title="Ch3LSL" />
                 <GridColumn Field=@nameof(TspecItem.Ch3Ucl) Title="Ch3USL" />
+                <GridColumn Field=@nameof(TspecItem.Ch4Ucl) Title="비고" />
             </GridColumns>
         </TelerikGrid>
     </CardBody>
 
 </TelerikCard>
 
+@************************** 프로그램 CODE ***************************************************************
+        구조체 정의:         CPK_Items, CPK_Statistics,
+********************************************************************************************************@
+
 @code {
+    //--- Data For Combobox : Model
+    private List<string> gModelNames = new List<string>();
+    private string gTargetModel = "";               // bind value
+    private string gLastSelectedModel = "";         // 같은 model 선택했을 때는 no action
 
-    static List<string> gModelNames = new List<string>();
-    List<CpkItem> gCpkItemsCL { get; set; } = new List<CpkItem>();
-    List<TspecItem> gCpkItemsSL { get; set; } = new List<TspecItem>();
-    static List<double> gRatioCL = new List<double> { 0.1, 0.2, 0.3 };
+    //--- For GridData
+    private List<CpkItem>   gCpkItemsCL { get; set; } = new List<CpkItem>();
+    private List<TspecItem> gCpkItemsSL { get; set; } = new List<TspecItem>();
 
-    private string gTargetModel = "";
-    private string gTargetNumber = "";
+    //--- LCL/UCL을 일괄 설정하기 위한 변수들 (ActivateConfirm 함수 이용)
+    private List<double> gRatioCL = new List<double> { 0.1, 0.2, 0.3 };
     private double gTargetRatio = 0.1;
-    private string gChannelName = "Channel1";
-    private int gCounter = 0;
-
-    public int gPageSize = 100;
-    string gLastSelectedModel = "";
-    public bool gCh1Visible { get; set; } = true;
-    public bool gCh2Visible { get; set; } = true;
-    public bool gCh3Visible { get; set; } = true;
 
     [CascadingParameter]
     public DialogFactory Dialogs { get; set; }
     public string gRetMessage { get; set; } = "N";
 
+    //======================================================================
+    //--- 초기화: 관리 모델들 Listup. 최초 모델에 대해 LCL/UCL Listup 
     protected override async Task OnInitializedAsync()
     {
         List_Models();
     }
 
+    //======================================================================
+    //--- 모델 Listup. 
     private void List_Models()
     {
-        //--- if alread models are listed-up, skip
-        if (gModelNames.Count > 0)
-            return;
-
-        List<CpkItem> tCpkModelList;
-
-        using (var db = new FimsDbContext())
+        gModelNames = cpkService.GetCpkModelNames();
+        //--- 첫번째 모델, 첫번째 TestNo 설정
+        if (gModelNames.Count != 0)
         {
-            tCpkModelList = db.CpkItems.ToList();
-        }
-
-        var models = from cpkModel in tCpkModelList
-                     orderby cpkModel.Model
-                     group cpkModel by cpkModel.Model into grp
-                     select grp.Key;
-
-        foreach (var item in models)
-        {
-            gModelNames.Add(item.ToString());
+            gTargetModel = gModelNames[0];
+            gLastSelectedModel = gTargetModel;
+            Get_Cpk_Items_For_Model(gTargetModel);
         }
     }
 
+    //======================================================================
+    //--- Model 선택시, 이전 모델이 아니면 LCL/UCL list up
+    private async void ModelChangeHandler(object theUserInput)
+    {
+        if (theUserInput == null)
+            return;
+
+        string selectedModel = theUserInput.ToString();
+        if (selectedModel == gLastSelectedModel)
+            return;
+
+        gLastSelectedModel = selectedModel;
+
+        //--- 해당 모델의 CpkItem을 Listup한다.
+        Get_Cpk_Items_For_Model(selectedModel);
+    }
+
+    //======================================================================
+    //--- 선택된 모델에 대해 LCL/UCL, LSL/USL listup
     private async Task Get_Cpk_Items_For_Model(string strModel)
     {
         //--- if alread models are listed-up, skip
@@ -164,37 +151,10 @@
             List<int> listTestNo = gCpkItemsCL.Select(x => x.TestNo).ToList();
             gCpkItemsSL = cpkService.GetSLValuesForModelAndTestNo(strModel, listTestNo);
         }
-
-        /*
-        using (var db = new FimsDbContext())
-            {
-            int idModel = db.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
-            gCpkItemsSL = db.TspecItems.Where(x => idModel == x.TspecModelId && listTestNo.Contains(x.TestNo)).ToList();
-    }
-    */
     }
 
-    private async void ModelChangeHandler(object theUserInput)
-    {
-        if (theUserInput == null)
-            return;
-
-        string selectedModel = theUserInput.ToString();
-        if (selectedModel == gLastSelectedModel)
-            return;
-
-        gLastSelectedModel = selectedModel;
-
-        //--- 해당 모델의 CpkItem을 Listup한다.
-        Get_Cpk_Items_For_Model(selectedModel);
-
-    }
-
-    private async Task Alert(string message)
-    {
-        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
-    }
-
+    //======================================================================
+    //--- Edit Handler : Nothing to do
     void EditHandler(GridCommandEventArgs args)
     {
         CpkItem item = (CpkItem)args.Item;
@@ -204,13 +164,18 @@
         {
             //args.IsCancelled = true;// the general approach for cancelling an event
         }
-
         Console.WriteLine("Edit event is fired.");
     }
 
+    //======================================================================
+    //--- Update LCL/UCL
     async Task UpdateHandler(GridCommandEventArgs args)
     {
         CpkItem item = (CpkItem)args.Item;
+
+        await ActivateConfirm("정말로 수정하시겠습니까 ?");
+        if (gRetMessage == "N")
+            return;
 
         // perform actual data source operations here through your service
         cpkService.UpdateCpkItem(item);
@@ -221,9 +186,15 @@
         Console.WriteLine("Update event is fired.");
     }
 
+    //======================================================================
+    //--- Delete LCL/UCL
     async Task DeleteHandler(GridCommandEventArgs args)
     {
         CpkItem item = (CpkItem) args.Item;
+
+        await ActivateConfirm("정말로 삭제하시겠습니까 ?");
+        if (gRetMessage == "N")
+            return;
 
         // perform actual data source operation here through your service
         cpkService.DeleteCpkItem(item.Model, item.TestNo);
@@ -234,11 +205,18 @@
         Console.WriteLine("Delete event is fired.");
     }
 
+    //======================================================================
+    //--- Create LCL/UCL
     async Task CreateHandler(GridCommandEventArgs args)
     {
         CpkItem item = (CpkItem)args.Item;
 
-        // perform actual data source operation here through your service
+        await ActivateConfirm("정말로 생성하시겠습니까 ?");
+        if (gRetMessage == "N")
+            return;
+ 
+            // perform actual data source operation here through your service
+        item.Model = gTargetModel;
         cpkService.CreateCpkItem(item);
 
         // update the local view-model data with the service data
@@ -247,20 +225,21 @@
         Console.WriteLine("Create event is fired.");
     }
 
+    //======================================================================
+    //--- Cancel Handler : Nothing to do
     async Task CancelHandler(GridCommandEventArgs args)
     {
         CpkItem item = (CpkItem)args.Item;
 
         // if necessary, perform actual data source operation here through your service
-
         Console.WriteLine("Cancel event is fired.");
     }
 
-    //--- CpkItems의 UCL/LCL을 USL/LSL을 기존으로 범위를 좁혀서 설정한다ㅏ.
-    //    
-    public void SetCL_WithRatio()
+    //======================================================================
+    //--- CpkItems의 UCL/LCL을 USL/LSL을 기존으로 범위를 좁혀서 설정한다. (아직 미구현)
+    public async Task SetCL_WithRatio()
     {
-        ActivateConfirm("정말로 설정하시겠습니까 ?");
+        await ActivateConfirm("정말로 설정하시겠습니까 ?");
         if (gRetMessage == "N")
             return;
 
@@ -273,7 +252,8 @@
         }
     }
 
-
+    //======================================================================
+    //--- Ratio설정시 confirm
     public async Task ActivateConfirm(string strMessage)
     {
         bool confirmed;
