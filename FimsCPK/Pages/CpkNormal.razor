@@ -33,7 +33,7 @@
 
 
 <PageTitle>Fims Dashboard</PageTitle>
-<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> FIMS CPK </div>
+<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 정규분포 </div>
 
 <TelerikCard>
 
@@ -131,41 +131,94 @@
                     </Content>
                 </TileLayoutItem>
 
-                <TileLayoutItem HeaderText="정규분포 그래프" RowSpan="3" ColSpan="4">
+                <TileLayoutItem HeaderText="정규분포" RowSpan="3" ColSpan="2">
                     <HeaderTemplate>
-                        <h4 style="color:green"><strong>정규분포 그래프: @gTargetModel&nbsp-@gTargetNumber</strong></h4>
-                        <h6 style="color:green"><strong>avg:@gAvg std:@gStdDev</strong></h6>
-                    </HeaderTemplate>
+                        <h4 style="color:green"><strong>정규분포 : @gTargetModel&nbsp-@gTargetNumber</strong></h4>
+                        <h6 style="color:green"><strong>avg:@gAvg, std:@gStdDev, lcl:@gSelectedLcl ucl:@gSelectedUcl</strong></h6>
+                     </HeaderTemplate>
                     <Content>
                         <TelerikChart Height="100%" Width="100%" @ref="theChart">
-                            <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
-                            <ChartLegend Visible="true"></ChartLegend>
+                            <ChartTooltip Visible="false" Shared="true"></ChartTooltip>
+                            <ChartLegend Visible="false"></ChartLegend>
                             <ChartSeriesItems>
                                 <ChartSeries Type="ChartSeriesType.Line"
-                                             Name="CTQ 측정값"
-                                             Data="@gListCtq"
-                                             Color="red"
-                                             Field="@gSelectedValue">
+                                             Name="Value1"
+                                             Data="@gNormalValue"
+                                             Color="blue"
+                                             Field="@nameof(CPK_NormalDist.value1)" CategoryField="@nameof(CPK_NormalDist.value2)">
+                                    @*
                                     <ChartSeriesLabels Template="#=value#" Visible="true" Color="blue" Background="#FF000000"></ChartSeriesLabels>
+                                    *@
+                                    <ChartSeriesMarkers Size="-1">
+                                        <ChartSeriesMarkersBorder Width="-1"></ChartSeriesMarkersBorder>
+                                    </ChartSeriesMarkers>
+
                                 </ChartSeries>
                             </ChartSeriesItems>
 
                             <ChartTitle Text="@gTargetModel" Description="Product Sales by Year and Country">
-                                <ChartSubtitle Text="여기에 평균, 표준편차 표시하자"></ChartSubtitle>
+                                <ChartSubtitle Text="@gNormalSubtitle"></ChartSubtitle>
                             </ChartTitle>
 
-                            <ChartValueAxes>
-                                <ChartValueAxis>
-                                    <ChartValueAxisTitle Text="측정값" />
-                                    <ChartValueAxisMajorGridLines Visible="true" />
-                                    <ChartValueAxisPlotBands>
-                                        <ChartValueAxisPlotBand From="@gSelectedLcl" To="@gSelectedUcl" Color="#00cc00" Opacity="0.1"></ChartValueAxisPlotBand>
-                                    </ChartValueAxisPlotBands>
-                                </ChartValueAxis>
-                            </ChartValueAxes>
+                            <ChartCategoryAxes>
+                                <ChartCategoryAxis>
+                                    <ChartCategoryAxisPlotBands>
+                                        <ChartCategoryAxisPlotBand From="@gGraphLcl" To="gGraphLcl" Color="blue" Opacity="1.0"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="50" To="50" Color="red" Opacity="1.0"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="@gGraphUcl" To="gGraphUcl" Color="blue" Opacity="1.0"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="@gSigma1L" To="gSigma1U" Color="green" Opacity="0.3"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="@gSigma2L" To="gSigma2U" Color="red" Opacity="0.3"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="@gSigma3L" To="gSigma3U" Color="yellow" Opacity="0.3"></ChartCategoryAxisPlotBand>
+                                    </ChartCategoryAxisPlotBands>
+                                    <ChartCategoryAxisLabels Step="20" />
+                                </ChartCategoryAxis>
+                            </ChartCategoryAxes>
+
+                        </TelerikChart>
+                    </Content>
+                </TileLayoutItem>
+
+                <TileLayoutItem HeaderText="X-R 관리도" RowSpan="3" ColSpan="2">
+                    <HeaderTemplate>
+                        <h4 style="color:green"><strong>X-R 관리도: @gTargetModel&nbsp-@gTargetNumber</strong></h4>
+                        <h6 style="color:green"><strong>avg:@gAvg, std:@gStdDev, lcl:@gSelectedLcl ucl:@gSelectedUcl</strong></h6>
+                    </HeaderTemplate>
+                    <Content>
+                        <TelerikChart Height="100%" Width="100%" @ref="theChart">
+                            <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
+                            <ChartLegend Visible="false"></ChartLegend>
+                            <ChartSeriesItems>
+                                <ChartSeries Type="ChartSeriesType.Line"
+                                             Name="Value1"
+                                             Data="@gNormalValue"
+                                             Color="blue"
+                                             Field="@nameof(CPK_NormalDist.value1)" CategoryField="@nameof(CPK_NormalDist.value2)">
+                                    @*
+                                    <ChartSeriesLabels Template="#=value#" Visible="true" Color="blue" Background="#FF000000"></ChartSeriesLabels>
+                                    *@
+                                    <ChartSeriesMarkers Size="5">
+                                        <ChartSeriesMarkersBorder Width="-1"></ChartSeriesMarkersBorder>
+                                    </ChartSeriesMarkers>
+
+                                </ChartSeries>
+                            </ChartSeriesItems>
+
+                            <ChartTitle Text="@gTargetModel" Description="Product Sales by Year and Country">
+                                <ChartSubtitle Text="@gNormalSubtitle"></ChartSubtitle>
+                            </ChartTitle>
 
                             <ChartCategoryAxes>
-                                <ChartCategoryAxis ></ChartCategoryAxis>
+                                <ChartCategoryAxis>
+                                    <ChartCategoryAxisPlotBands>
+                                        <ChartCategoryAxisPlotBand From="@gGraphLcl" To="gGraphLcl" Color="blue" Opacity="1.0"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="50" To="50" Color="red" Opacity="1.0"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="@gGraphUcl" To="gGraphUcl" Color="blue" Opacity="1.0"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="@gSigma1L" To="gSigma1U" Color="green" Opacity="0.3"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="@gSigma2L" To="gSigma2U" Color="red" Opacity="0.3"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="@gSigma3L" To="gSigma3U" Color="yellow" Opacity="0.3"></ChartCategoryAxisPlotBand>
+                                    </ChartCategoryAxisPlotBands>
+                                    <ChartCategoryAxisLabels Step="10" />
+                                </ChartCategoryAxis>
                             </ChartCategoryAxes>
 
                         </TelerikChart>
@@ -186,6 +239,15 @@
         public float value2 { get; set; }
         public float value3 { get; set; }
     };
+
+    public class CPK_NormalDist
+    {
+        public string xCategory { get; set; }
+        public double value1 { get; set; }
+        public double value2 { get; set; }
+        public double value3 { get; set; }
+    };
+
 
     public class CPK_Statistics
     {
@@ -217,6 +279,7 @@
     public List<CPK_Items> gListCtqBlank { get; set; } = new List<CPK_Items>();
     public List<CPK_Statistics> gCpkStats { get; set; }
     private TelerikGrid<CPK_Statistics> GridRef { get; set; }
+    private List<CPK_NormalDist> gNormalValue { get; set; } = new List<CPK_NormalDist>();
 
     public DateTime gMinYear = new DateTime(2023, 1, 1, 0, 0, 0);
     public DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
@@ -227,6 +290,7 @@
     private string gTargetModel = "";
     private string gTargetNumber = "";
     private string gTargetOnlyNumber = "";
+    private string gNormalSubtitle = "평균=-, 표준편차=-";
     private string gChannelName = "Channel1";
     private bool gSetDuration = false;
     private int gCounter = 0;
@@ -255,6 +319,16 @@
     public double gSelectedUcl = 0;
     public double gAvg = 0;
     public double gStdDev = 0;
+
+    public double gGraphLcl = 0;
+    public double gGraphUcl = 0;
+    public double gSigma1L = 0;
+    public double gSigma1U = 0;
+    public double gSigma2L = 0;
+    public double gSigma2U = 0;
+    public double gSigma3L = 0;
+    public double gSigma3U = 0;
+
 
     //--- TestNo Combobox refresh를 위한 것
     public TelerikComboBox<string, string> ComboBoxRef { get; set; }
@@ -410,6 +484,7 @@
             GridRef?.Rebind();
         }
 
+
         //--- select graph value
         gSelectedValue = "value" + gChannelName;
         string chname = "Ch-" + gChannelName;
@@ -420,6 +495,14 @@
         var c2 = gCpkStats.Where(x => x.name == chname).Select(p => p.stddev).ToList();
         gStdDev = c2.Count == 0 ? 0 : c2[0];
         gStdDev = Math.Round(gStdDev, 2);
+
+        gNormalValue.Clear();
+        gNormalSubtitle = "평균=" + gAvg.ToString() + ", 표준편차=" + gStdDev.ToString();
+        if (gAvg == 0 && gStdDev == 0)
+        {
+            theChart.Refresh();
+            return;
+        }
 
         if (gChannelName == "1")
         {
@@ -441,7 +524,51 @@
             gSelectedLcl = 0;
             gSelectedUcl = 0;
         }
+
+        //--- 정규분포 값 계산
+        //    입력 : gAvg, gStdDev, point수
+        //    계산 : xMin, xMax, step
+        int pointCount = 100;
+        double xMin = gAvg - 4 * gStdDev;
+        double xMax = gAvg + 4 * gStdDev;
+        double step = (xMax - xMin) / pointCount;
+        int ix = 0;
+
+        for (double x = xMin; x <= xMax; x += step)
+        {
+            CPK_NormalDist nd = new CPK_NormalDist();
+            nd.value1 = NormalDistribution(x, gAvg, gStdDev);
+            nd.xCategory = x.ToString("#.##");
+            nd.value2 = ((int)(x*1000))/1000.0;
+            gNormalValue.Add(nd);
+            ix++;
+        }
+
+        //--- set lcl/ucl, sigma1, sigma2, sigma3
+        gGraphLcl = GetXIndex(xMin, xMax, step, gSelectedLcl);
+        gGraphUcl = GetXIndex(xMin, xMax, step, gSelectedUcl);
+        gSigma1L = GetXIndex(xMin, xMax, step, gAvg - gStdDev);
+        gSigma1U = GetXIndex(xMin, xMax, step, gAvg + gStdDev);
+        gSigma2L = GetXIndex(xMin, xMax, step, gAvg - 2*gStdDev);
+        gSigma2U = GetXIndex(xMin, xMax, step, gAvg + 2*gStdDev);
+        gSigma3L = GetXIndex(xMin, xMax, step, gAvg - 3*gStdDev);
+        gSigma3U = GetXIndex(xMin, xMax, step, gAvg + 3*gStdDev);
         theChart.Refresh();
+    }
+
+    private double NormalDistribution(double x, double mean, double stddev)
+    {
+        double expPart = Math.Exp(-Math.Pow(x - mean, 2) / (2 * Math.Pow(stddev, 2)));
+        return (1 / (stddev * Math.Sqrt(2 * Math.PI))) * expPart;
+    }
+
+    //--- return index of Value in num : dMin~dMax : num
+    //    
+    private double GetXIndex(double dMin, double dMax, double step, double dValue)
+    {
+        double diff = dValue - dMin;
+        double dix = Math.Ceiling(diff / step);
+        return dix;
     }
 
     private async Task Alert(string message)
