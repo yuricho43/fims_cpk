@@ -289,7 +289,7 @@
 
     private string gTargetModel = "";
     private string gTargetNumber = "";
-    private string gTargetOnlyNumber = "";
+    private int gTargetOnlyNumber = 0;
     private string gNormalSubtitle = "평균=-, 표준편차=-";
     private string gChannelName = "Channel1";
     private bool gSetDuration = false;
@@ -410,8 +410,8 @@
         string strEndDate = gEndYear.ToString("yyyy-MM-dd");
 
 
-        gTargetOnlyNumber = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")") - 1);
-        int iTestNo = int.Parse(gTargetOnlyNumber);
+        string strNumber = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")") - 1);
+        gTargetOnlyNumber = int.Parse(strNumber);
         string strModel = gTargetModel;
 
         using (var db = new FimsDbContext())
@@ -422,7 +422,7 @@
                             orderby sheet.InspectionEndDateTime
                             where sheet.ProductModel == gTargetModel &&
                                  sheet.Id == item.TsheetId &&
-                                 item.TestNo == iTestNo
+                                 item.TestNo == gTargetOnlyNumber
                             select new CPK_Items
                                 {
                                     sn = sheet.ProductSerial,
@@ -437,7 +437,7 @@
                             orderby sheet.InspectionEndDateTime
                             where sheet.ProductModel == gTargetModel &&
                                  sheet.Id == item.TsheetId &&
-                                 item.TestNo == iTestNo &&
+                                 item.TestNo == gTargetOnlyNumber &&
                                  sheet.InspectionEndDateTime >= gStartYear &&
                                  sheet.InspectionEndDateTime <= gEndYear
                             select new CPK_Items

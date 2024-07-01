@@ -9,34 +9,15 @@
 @inject IJSRuntime JsRuntime
 @inject CpkService cpkService
 
-<style>
-    .k-grid tbody {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 0.5;
-        font-size: 12px;
-        font-family: calibri;
-        /* background-color: lightyellow;*/
-    }
-
-    .k-grid-header .k-header {
-        font-weight: bold;
-        font-size: 14px;
-        font-family: calibri;
-        padding: 1px;
-        margin: 1px;
-        text-align: center;
-        background-color: lightcyan;
-    }
-</style>
-
-
+@************************** PAGE TITLE *****************************************************************@
 <PageTitle>Fims Dashboard</PageTitle>
 <div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> FIMS CPK </div>
 
-<TelerikCard>
+@************************** PAGE HEADER 구성 *************************************************************
+        기간설정 (년/월~년/월), 모델 선택, 테스트항목 선택,   (채널선택==> 모든 채널 표시), CPK_CHECK 버튼
+********************************************************************************************************@
 
+<TelerikCard>
     <CardHeader>
         &nbsp;&nbsp;&nbsp
         <label for="myIncludeDate" ThemeColor="success" style="color:red ">&nbsp;&nbsp;&nbsp;기간지정</label>
@@ -60,19 +41,19 @@
                          Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
 
-        @*
-        <label for="myChannel"> &nbsp;&nbsp;&nbsp;&nbsp;Channel:</label>
-        <TelerikComboBox Data="@gChananelNames" TextField="MyTextField" ValueField="MyValueField" Width="200px" @bind-Value="@gChannelName"
-                         Placeholder="Select an item..." ClearButton="true" Filterable="true">
-        </TelerikComboBox>
-        *@
         &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Model" Icon="FontIcon.Search">CPK체크</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
     </CardHeader>
 
+    @************************** PAGE BODY 구성 ***************************************************************
+          검사리스트(Grid)        CPK통계(Grid)
+                                 
+                                 Chart for channel1
+                                 Chart for channel2
+                                 Chart for channel3
+    ********************************************************************************************************@
 
     <CardBody>
-       
         <TelerikTileLayout Columns="6"
                            ColumnWidth="18%"
                            RowHeight="200px"
@@ -87,7 +68,7 @@
                         <TelerikGrid Class="cpk-grid"
                                      Data="@gListCtq"
                                      ConfirmDelete="true"
-                                     Pageable="false"
+                                     Pageable="true"
                                      Groupable="false"
                                      Sortable="false"
                                      FilterMode="GridFilterMode.FilterMenu"
@@ -114,8 +95,6 @@
                             </GridExport>
 
                             <GridColumns>
-
-
                                 <GridColumn Field=@nameof(CPK_Items.sn) Width="30px" Title="SN" Sortable=true />
                                 <GridColumn Field=@nameof(CPK_Items.workdate) Width="60px" Title="검사날짜" Sortable=true />
                                 <GridColumn Field=@nameof(CPK_Items.value1) Width="30px" Title="CH1값" Sortable=true />
@@ -279,10 +258,13 @@
             </TileLayoutItems>
         </TelerikTileLayout>
     </CardBody>
-
 </TelerikCard>
 
+@************************** 프로그램 CODE ***************************************************************
+        구조체 정의:         CPK_Items, CPK_Statistics, 
+********************************************************************************************************@
 @code {
+    //--- 검사항목 List 구조체
     public class CPK_Items
     {
         public string sn { get; set; }
@@ -292,6 +274,7 @@
         public float value3 { get; set; }
     };
 
+    //--- CPK 통계 구조체
     public class CPK_Statistics
     {
         public string name { get; set; }
@@ -313,25 +296,32 @@
         public string usl {get; set; }
     };
 
+    //--- Data For Combobox : Model, TestNo, Channel#
+    private List<string> gModelNames = new List<string>();
+    private List<string> gTestNumbers { get; set; } = new List<string>();
 
-    static List<string> gModelNames = new List<string>();
-    List<string> gTestNumbers { get; set; } = new List<string>();
-    static string[] gChananelNames = { "Channel1", "Channel2", "Channel3" };
-
+    //--- For GridData/ChartData
     public List<CPK_Items> gListCtq { get; set; }
     public List<CPK_Items> gListCtqBlank { get; set; } = new List<CPK_Items>();
-    public List<CPK_Statistics> gCpkStats { get; set; }
-    private TelerikGrid<CPK_Statistics> GridRef { get; set; }
 
-    public DateTime gMinYear = new DateTime(2023, 1, 1, 0, 0, 0);
-    public DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
+    //--- For GridData
+    private TelerikGrid<CPK_Statistics> GridRef { get; set; }   // 검색후 Ctq List Rebind하기 위해 (시간차로 표시 안될 수 있기 때문에)
+    public List<CPK_Statistics> gCpkStats { get; set; }         // Cpk통계 Grid에 표시할 값
 
+    //--- For ChartData
+    public bool gCh1Visible { get; set; } = true;       // sum = 0 인 경우, data가 없다고 가정하고 grpah를 그리지 않는다.
+    public bool gCh2Visible { get; set; } = true;
+    public bool gCh3Visible { get; set; } = true;
+
+    //--- 검색 기간 : 2023~2030 사이
+    private DateTime gMinYear   = new DateTime(2023, 1, 1, 0, 0, 0);
+    private DateTime gMaxYear   = new DateTime(2030, 1, 1, 0, 0, 0);
     private DateTime gStartYear = DateTime.Now;
-    private DateTime gEndYear = DateTime.Now;
+    private DateTime gEndYear   = DateTime.Now;
 
     private string gTargetModel = "";
     private string gTargetNumber = "";
-    private string gTargetOnlyNumber = "";
+    private int gTargetOnlyNumber = 0;
     private string gChannelName = "Channel1";
     private bool gSetDuration = false;
     private int gCounter = 0;
@@ -339,11 +329,7 @@
     public int gSpanYear = 0;
     public int gPageSize = 100;
     bool ExportAllPages { get; set; }
-    string gStrFilename { get; set; }
     string gLastSelectedModel = "";
-    public bool gCh1Visible { get; set; } = true;
-    public bool gCh2Visible { get; set; } = true;
-    public bool gCh3Visible { get; set; } = true;
 
     //--- lcl/ucl, lsl,usl
     public double gCh1Lcl { get; set; } = 42;
@@ -353,8 +339,18 @@
     public double gCh3Lcl { get; set; }
     public double gCh3Ucl { get; set; }
 
+    //--- TestNo 콤보박스에 대한 변수
     public TelerikComboBox<string, string> ComboBoxRef { get; set; }
 
+    //--- For Excel Export
+    string gStrFilename { get; set; }   // exported excel filename : CtqList_ModelName_TestNumber_yyyy-mm-dd_HH.mm.ss.xlsx
+
+
+    // ======================================================================
+    /// <summary>
+    ///     초기화 : excel filename 지정, 기본기간지정, 변수 초기화, 해당 ModelName 추출
+    /// </summary>
+    /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
         gStrFilename = "CtqList_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
@@ -363,33 +359,31 @@
         List_Models();
     }
 
+    // ======================================================================
+    //      Cpk관리할 Model 이름 List를 DB에서 읽어 온다.
     private void List_Models()
     {
-        //--- if alread models are listed-up, skip
-        if (gModelNames.Count > 0)
-            return;
-
-        List<CpkItem> tCpkModelList;
-
-        using (var db = new FimsDbContext())
+        gModelNames = cpkService.GetCpkModelNames();
+        //--- 첫번째 모델, 첫번째 TestNo 설정
+        if (gModelNames.Count != 0)
         {
-            tCpkModelList = db.CpkItems.ToList();
-        }
-
-        var models = from cpkModel in tCpkModelList
-                     orderby cpkModel.Model
-                     group cpkModel by cpkModel.Model into grp
-                     select grp.Key;
-
-        foreach(var item in models)
-        {
-            gModelNames.Add(item.ToString());
+            gTargetModel = gModelNames[0];
+            Refresh_TestNo_For_Model(gTargetModel);
         }
     }
 
+    // ======================================================================
+    //      모델이 변경되면, 해당 모델의 TestNo List를 새로 가져온다.
     private async void ModelChangeHandler(object theUserInput)
     {
         string selectedModel = theUserInput.ToString();
+        Refresh_TestNo_For_Model(selectedModel);
+    }
+
+    // ======================================================================
+    //      모델이 변경되면, 해당 모델의 TestNo List를 새로 가져온다.
+    private void Refresh_TestNo_For_Model(string selectedModel)
+    {
         if (selectedModel == gLastSelectedModel)
             return;
 
@@ -401,23 +395,28 @@
         {
             var lists = db.CpkItems.Where(n => n.Model == gLastSelectedModel).Select(p => p.TestNo).ToList();
 
-            List<int> temp = lists.ToList();           
-            foreach(var tno in temp)
+            List<int> temp = lists.ToList();
+            foreach (var tno in temp)
             {
-                gTestNumbers.Add("("+tno+"):"+db.TspecItems.Where(x => x.TestNo == tno).Select(p=>p.Title).FirstOrDefault());
+                gTestNumbers.Add("(" + tno + "):" + db.TspecItems.Where(x => x.TestNo == tno).Select(p => p.Title).FirstOrDefault());
             }
 
             gTargetNumber = gTestNumbers[0];
         }
-        ComboBoxRef.Rebind();
+
+        ComboBoxRef?.Rebind();
     }
 
+    // ======================================================================
     //-- Need Model Name, Test#, ChannelNo
     /// <summary>
-    ///     1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다.
+    ///     1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다. (gListCtq)
+    ///     2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소,
     /// </summary>
     private void Retrieve_TestData_For_Model()
     {
+
+        //--- Model이나 TestNo가 지정되어야만 한다.
         if (gTargetModel == null || gTargetModel.Length < 3 || 
             gTargetNumber == null || gTargetNumber.Length < 3)
         {
@@ -425,24 +424,21 @@
             return;
         }
 
-        string strStartDate = gStartYear.ToString("yyyy-MM-dd");
-        string strEndDate = gEndYear.ToString("yyyy-MM-dd");
+        //--- TestNo 콤보박스에는 Test#+TestName이 들어가 있다. Test#만 추출한다. 통계 data 계산할때 필요.
+        string strTargetNo = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")") - 1);
+        gTargetOnlyNumber = int.Parse(strTargetNo);
 
-        gTargetOnlyNumber = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")") - 1);
-        int iTestNo = int.Parse(gTargetOnlyNumber);
-        string strModel = gTargetModel;
-
-        //----------------------------------------------------------------------------------------------
         //--- 1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다. (ch1~3 값이 모두 0인 것은 제외한다.)
         using (var db = new FimsDbContext())
         {
             if (gSetDuration == false) // 날짜 무시
+            {
                 gListCtq = (from sheet in db.Tsheets
                             from item in db.Titems
                             orderby sheet.InspectionEndDateTime
                             where sheet.ProductModel == gTargetModel &&
                                  sheet.Id == item.TsheetId &&
-                                 item.TestNo == iTestNo
+                                 item.TestNo == gTargetOnlyNumber
                             select new CPK_Items
                         {
                             sn = sheet.ProductSerial,
@@ -451,13 +447,18 @@
                             value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
                             value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
                         }).ToList();
+            }
             else
+            {
+                string strStartDate = gStartYear.ToString("yyyy-MM-dd");
+                string strEndDate = gEndYear.ToString("yyyy-MM-dd");
+
                 gListCtq = (from sheet in db.Tsheets
                             from item in db.Titems
                             orderby sheet.InspectionEndDateTime
                             where sheet.ProductModel == gTargetModel &&
                                  sheet.Id == item.TsheetId &&
-                                 item.TestNo == iTestNo &&
+                                 item.TestNo == gTargetOnlyNumber &&
                                  sheet.InspectionEndDateTime >= gStartYear &&
                                  sheet.InspectionEndDateTime <= gEndYear
                             select new CPK_Items 
@@ -468,6 +469,7 @@
                                 value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
                                 value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
                         }).ToList();
+            }
 
             gListCtq = gListCtq.Where(x => x.value1 != 0 || x.value2 != 0 || x.value3 != 0).ToList();
             gCounter = gListCtq.Count();
@@ -503,16 +505,14 @@
             }
 
             GridRef?.Rebind();
-
         }
     }
 
-    private async Task Alert(string message)
-    {
-        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
-    }
-
-    // gTargetModel, gTargetNumber
+    //======================================================================
+    //--- 특정 채널 data에 대해 각종 통계값 계산
+    //    (평균, 최소, 최대, 표준편차, 합계, lsl, usl, lcl, ucl)
+    //--- Sample 수가 30개가 넘는 경우에
+    //    (cp, cpk, 양품수) (chart에 표시할 lcl/ucl값 = gChxLcl/gChxUcl)
     private CPK_Statistics GetStatistics(int ixCh, List<CPK_Items> cpkitems)
     {
         List<float> items;
@@ -539,7 +539,7 @@
 
         record.name = "Ch-" + ixCh.ToString();
         record.num = items.Count();
-        if (record.num > 30)
+        if (record.num >= 30)
         {
             record.average = items.Average();
             record.min = items.Min();
@@ -554,7 +554,6 @@
             cpkService.GetCL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
             record.lcl = strLSL;
             record.ucl = strUSL;
-
 
             if (record.sum != 0)
             {
@@ -597,6 +596,8 @@
         return record;
     }
 
+    //======================================================================
+    //--- 표준편차 계산
     private float getStandardDeviation(List<float> floatList)
     {
         float average = floatList.Average();
@@ -608,4 +609,12 @@
         double sumOfDerivationAverage = sumOfDerivation / floatList.Count;
         return (float) Math.Sqrt(sumOfDerivationAverage - (average * average));
     }
+
+    //======================================================================
+    //--- 경고 Message 표시
+    private async Task Alert(string message)
+    {
+        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
+    }
+
 }

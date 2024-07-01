@@ -1,4 +1,5 @@
 ﻿using FimsCPK.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using static Telerik.Blazor.ThemeConstants;
 
@@ -7,6 +8,7 @@ namespace FimsCPK.Services
     public class CpkService
     {
         private readonly FimsDbContext _dbFimsContext;
+        static List<string> gStrModels = new List<string>();
 
         /// <summary>
         /// Reserve DbContext
@@ -149,23 +151,23 @@ namespace FimsCPK.Services
         }
 
         //--- 특정모델의 TestNo에 대해, ixCh의 SL값을 return
-        public void GetSL(string strModel, string TestNo, int ixCh, ref string strLSL, ref string strUSL)
+        public void GetSL(string strModel, int TestNo, int ixCh, ref string strLSL, ref string strUSL)
         {
             int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
             if (ixCh == 1)
             {
-                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch1Lcl).FirstOrDefault();
-                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch1Ucl).FirstOrDefault(); ;
+                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo).Select(p => p.Ch1Lcl).FirstOrDefault();
+                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo).Select(p => p.Ch1Ucl).FirstOrDefault(); ;
             }
             else if (ixCh == 2)
             {
-                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch2Lcl).FirstOrDefault();
-                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch2Ucl).FirstOrDefault(); ;
+                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo).Select(p => p.Ch2Lcl).FirstOrDefault();
+                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo).Select(p => p.Ch2Ucl).FirstOrDefault(); ;
             }
             else if (ixCh == 3)
             {
-                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch3Lcl).FirstOrDefault();
-                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo.ToString()).Select(p => p.Ch3Ucl).FirstOrDefault(); ;
+                strLSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo).Select(p => p.Ch3Lcl).FirstOrDefault();
+                strUSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && TestNo == x.TestNo).Select(p => p.Ch3Ucl).FirstOrDefault(); ;
             }
             else
             {
@@ -175,28 +177,54 @@ namespace FimsCPK.Services
         }
 
         //--- 특정모델의 TestNo에 대해, ixCh의 SL값을 return
-        public void GetCL(string strModel, string TestNo, int ixCh, ref string strLCL, ref string strUCL)
+        public void GetCL(string strModel, int TestNo, int ixCh, ref string strLCL, ref string strUCL)
         {
             if (ixCh == 1)
             {
-                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch1Lcl).FirstOrDefault();
-                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch1Ucl).FirstOrDefault();
+                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo).Select(p => p.Ch1Lcl).FirstOrDefault();
+                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo).Select(p => p.Ch1Ucl).FirstOrDefault();
             }
             else if (ixCh == 2)
             {
-                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch2Lcl).FirstOrDefault();
-                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch2Ucl).FirstOrDefault();
+                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo).Select(p => p.Ch2Lcl).FirstOrDefault();
+                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo).Select(p => p.Ch2Ucl).FirstOrDefault();
             }
             else if (ixCh == 3)
             {
-                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch3Lcl).FirstOrDefault();
-                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo.ToString()).Select(p => p.Ch3Ucl).FirstOrDefault();
+                strLCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo).Select(p => p.Ch3Lcl).FirstOrDefault();
+                strUCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel && TestNo == x.TestNo).Select(p => p.Ch3Ucl).FirstOrDefault();
             }
             else
             {
                 strLCL = "";
                 strUCL = "";
             }
+        }
+
+        public List<string> GetCpkModelNames()
+        {
+            //--- if already extract target models
+            if (gStrModels.Count > 0)
+                return gStrModels;
+
+            List<CpkItem> tCpkModelList;
+
+            using (var db = new FimsDbContext())
+            {
+                tCpkModelList = db.CpkItems.ToList();
+            }
+
+            var models = from cpkModel in tCpkModelList
+                         orderby cpkModel.Model
+                         group cpkModel by cpkModel.Model into grp
+                         select grp.Key;
+
+            foreach (var item in models)
+            {
+                gStrModels.Add(item.ToString());
+            }
+
+            return gStrModels;
         }
 
     }
