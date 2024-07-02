@@ -154,19 +154,68 @@
                         {
                             var li = i;
                             <TelerikChart Height="30%">
-                                <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
                                 <ChartLegend Visible="true"></ChartLegend>
                                 <ChartSeriesItems>
-
+                                    
                                     @if (@gChVisible[li])
                                     {
-                                        <ChartSeries Type="ChartSeriesType.Line"
-                                                     Name="CTQ 측정값"
-                                                     Data="@gListCtq"
-                                                     Color=@gColorValues[li]
-                                                     Field=@gChannelValues[li]>
-                                            <ChartSeriesMarkers Size="3" />
-                                        </ChartSeries>
+                                        @if (li == 0)
+                                        {
+                                            <ChartSeries Type="ChartSeriesType.Line"
+                                                    Name="CTQ 측정값"
+                                                             Data="@gListCtq"
+                                                             Color="@gColorValues[li]"
+                                                             Field="@gChannelValues[li]">
+                                                    <ChartSeriesMarkers Size="4" />
+                                                    <ChartSeriesTooltip Visible="true">
+                                                        <Template>
+                                                            SN=@((context.DataItem as CPK_Items).sn)
+                                                            <br />
+                                                            검사날짜=@((context.DataItem as CPK_Items).workdate)
+                                                            <br />
+                                                            값="@((context.DataItem as CPK_Items).value1)"
+                                                        </Template>
+                                                    </ChartSeriesTooltip>
+                                            </ChartSeries>
+                                        }
+                                        else if (li == 1)
+                                        {
+                                            <ChartSeries Type="ChartSeriesType.Line"
+                                                         Name="CTQ 측정값"
+                                                         Data="@gListCtq"
+                                                         Color="@gColorValues[li]"
+                                                         Field="@gChannelValues[li]">
+                                                <ChartSeriesMarkers Size="4" />
+                                                <ChartSeriesTooltip Visible="true">
+                                                    <Template>
+                                                        SN=@((context.DataItem as CPK_Items).sn)
+                                                        <br />
+                                                        검사날짜=@((context.DataItem as CPK_Items).workdate)
+                                                        <br />
+                                                        값="@((context.DataItem as CPK_Items).value2)"
+                                                    </Template>
+                                                </ChartSeriesTooltip>
+                                            </ChartSeries>
+                                        }
+                                        else
+                                        {
+                                            <ChartSeries Type="ChartSeriesType.Line"
+                                                         Name="CTQ 측정값"
+                                                         Data="@gListCtq"
+                                                         Color="@gColorValues[li]"
+                                                         Field="@gChannelValues[li]">
+                                                <ChartSeriesMarkers Size="4" />
+                                                <ChartSeriesTooltip Visible="true">
+                                                    <Template>
+                                                        SN=@((context.DataItem as CPK_Items).sn)
+                                                        <br />
+                                                        검사날짜=@((context.DataItem as CPK_Items).workdate)
+                                                        <br />
+                                                        값="@((context.DataItem as CPK_Items).value3)"
+                                                    </Template>
+                                                </ChartSeriesTooltip>
+                                            </ChartSeries>
+                                        }
                                     }
                                     else
                                     {
@@ -181,7 +230,7 @@
 
                                 <ChartValueAxes>
                                     <ChartValueAxis Min="@gyMin[li]" Max="@gyMax[li]">
-                                        <ChartValueAxisTitle Text="측정값-Ch1" />
+                                        <ChartValueAxisTitle Text="@gChNames[li]" />
                                         <ChartValueAxisMajorGridLines Visible="true" />
                                         <ChartValueAxisPlotBands>
                                             <ChartValueAxisPlotBand From="@gyAvg[li]" To="@gyAvg2[li]" Color="green" Opacity="0.9"></ChartValueAxisPlotBand>
@@ -191,7 +240,11 @@
                                         </ChartValueAxisPlotBands>
                                     </ChartValueAxis>
                                 </ChartValueAxes>
-
+                                <ChartCategoryAxes>
+                                    <ChartCategoryAxis Categories="@gXAxisLabels">
+                                        <ChartCategoryAxisLabels Step="@gStep" />
+                                    </ChartCategoryAxis>
+                                </ChartCategoryAxes>
                             </TelerikChart>
                         }
                         @************************************************************************@
@@ -217,6 +270,7 @@
         public float value1 { get; set; }
         public float value2 { get; set; }
         public float value3 { get; set; }
+        public int ix { get; set; }
     };
 
     //--- CPK 통계 구조체
@@ -280,6 +334,7 @@
     string gStrFilename { get; set; }   // exported excel filename : CtqList_ModelName_TestNumber_yyyy-mm-dd_HH.mm.ss.xlsx
 
     //--- For Loop in Charts
+    public string[] gXAxisLabels = new string[100];
 
     // lcl/ucl, lsl,usl
     double[] gChLcl = new double[3];    // 검은색
@@ -297,10 +352,12 @@
     double[] gy3SigL = new double[3];   // 배경색 노랑
     double[] gy3SigH = new double[3];
 
-    string[] gColorValues   = new string[3] {"red", "blue", "green"}; 
+    string[] gChNames = new string[3] { "Ch-1", "Ch-2", "Ch-3" };
+    string[] gColorValues   = new string[3] { "red", "blue", "green" };
     string[] gChannelValues = new string[3] { "value1", "value2", "value3" };
     bool[]   gChVisible     = new bool[3]   { true, true, true };
 
+    double gStep = 10;
     //======================================================================
     //     초기화 : excel filename 지정, 기본기간지정, 변수 초기화, 해당 ModelName 추출
     protected override async Task OnInitializedAsync()
@@ -309,6 +366,9 @@
         gStartYear = gEndYear.AddMonths(-12);
         gCpkStats = new List<CPK_Statistics>();
         List_Models();
+
+        Retrieve_TestData_For_Model();
+
     }
 
     //======================================================================
@@ -365,7 +425,6 @@
     //     2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소,
     private void Retrieve_TestData_For_Model()
     {
-
         //--- Model이나 TestNo가 지정되어야만 한다.
         if (gTargetModel == null || gTargetModel.Length < 3 || 
             gTargetNumber == null || gTargetNumber.Length < 3)
@@ -423,6 +482,17 @@
 
             gListCtq = gListCtq.Where(x => x.value1 != 0 || x.value2 != 0 || x.value3 != 0).ToList();
             gCounter = gListCtq.Count();
+
+            gXAxisLabels = new string[gCounter];
+            for (int k = 1; k <= gCounter; k++)
+                gXAxisLabels[k - 1] = k.ToString();
+
+            if (gCounter <= 100)
+                gStep = 10;
+            else if (gCounter < 500)
+                gStep = 20;
+            else
+                gStep = 30;
 
             //----------------------------------------------------------------------------------------------
             //--- 2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소, 
