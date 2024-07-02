@@ -91,21 +91,21 @@ namespace FimsCPK.Pages
                 if (gSetDuration == false)
                 { 
                     if (gStringModel != null && gStringModel.Length >=2)
-                        gSheetList = db.Tsheets.OrderBy(x => x.InspectionEndDateTime).
+                        gSheetList = db.Tsheets.OrderByDescending(x => x.InspectionEndDateTime).
                                     Where(n => n.ProductModel.Contains(gStringModel) == true
                                     ).ToList();
                     else
-                        gSheetList = db.Tsheets.OrderBy(x => x.InspectionEndDateTime).ToList();
+                        gSheetList = db.Tsheets.OrderByDescending(x => x.InspectionEndDateTime).ToList();
                 }
                 else
                 {
                     if (gStringModel != null && gStringModel.Length >= 2)
-                       gSheetList = db.Tsheets.OrderBy(x => x.InspectionEndDateTime).
+                       gSheetList = db.Tsheets.OrderByDescending(x => x.InspectionEndDateTime).
                             Where(n => n.InspectionEndDateTime >= gStartYear && n.InspectionEndDateTime <= gEndYear &&
                                   n.ProductModel.Contains(gStringModel) == true
                                   ).ToList();
                     else
-                        gSheetList = db.Tsheets.OrderBy(x => x.InspectionEndDateTime).Where(n => n.InspectionEndDateTime >= gStartYear && n.InspectionEndDateTime <= gEndYear).ToList();
+                        gSheetList = db.Tsheets.OrderByDescending(x => x.InspectionEndDateTime).Where(n => n.InspectionEndDateTime >= gStartYear && n.InspectionEndDateTime <= gEndYear).ToList();
                 }
                 gCounter = gSheetList.Count;
             }

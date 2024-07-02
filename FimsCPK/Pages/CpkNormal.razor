@@ -44,7 +44,7 @@
         </TelerikComboBox>
 
         <label for="myChannel"> &nbsp;&nbsp;&nbsp;&nbsp;Channel:</label>
-        <TelerikComboBox Data="@gChananelNames" TextField="MyTextField" ValueField="MyValueField" Width="100px" @bind-Value="@gChannelName"
+        <TelerikComboBox Data="@gChananelNames" TextField="MyTextField" ValueField="MyValueField" Width="100px" @bind-Value="@gChannelName" OnChange="@ChannelChangeHandler"
                          Placeholder="..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
 
@@ -163,46 +163,61 @@
 
                 <TileLayoutItem HeaderText="X-R 관리도" RowSpan="3" ColSpan="2">
                     <HeaderTemplate>
-                        <h4 style="color:green"><strong>X-R 관리도: @gTargetModel&nbsp-@gTargetNumber</strong></h4>
-                        <h6 style="color:green"><strong>avg:@gAvg, std:@gStdDev, lcl:@gSelectedLcl ucl:@gSelectedUcl</strong></h6>
+                        <h5 style="color:green"><strong>X-R 관리도: @gTargetModel&nbsp-@gTargetNumber</strong></h5>
+                        <h6 style="color:green"><strong>(Ch-@gChannelName) avg:@gAvg, std:@gStdDev, lcl:@gSelectedLcl ucl:@gSelectedUcl</strong></h6>
                     </HeaderTemplate>
                     <Content>
                         <TelerikChart Height="100%" Width="100%" @ref="theChartXR">
                             <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
                             <ChartLegend Visible="false"></ChartLegend>
                             <ChartSeriesItems>
-                                <ChartSeries Type="ChartSeriesType.Line"
-                                             Name="Value1"
-                                             Data="@gNormalValue"
-                                             Color="blue"
-                                             Field="@nameof(CPK_NormalDist.value1)" CategoryField="@nameof(CPK_NormalDist.value2)">
-                                    @*
-                                    <ChartSeriesLabels Template="#=value#" Visible="true" Color="blue" Background="#FF000000"></ChartSeriesLabels>
-                                    *@
-                                    <ChartSeriesMarkers Size="5">
-                                        <ChartSeriesMarkersBorder Width="-1"></ChartSeriesMarkersBorder>
-                                    </ChartSeriesMarkers>
+                                @if (@gChannelName == "1")
+                                {
+                                    <ChartSeries Type="ChartSeriesType.Line"
+                                                 Name="CTQ 측정값"
+                                                 Data="@gListCtq"
+                                                 Color="blue"
+                                                 Field="value1">
+                                        <ChartSeriesMarkers Size="3"/>
 
-                                </ChartSeries>
+                                    </ChartSeries>
+                                }
+                                else if (@gChannelName == "2")
+                                {
+                                    <ChartSeries Type="ChartSeriesType.Line"
+                                                 Name="CTQ 측정값"
+                                                 Data="@gListCtq"
+                                                 Color="blue"
+                                                 Field="value2">
+                                        <ChartSeriesMarkers Size="3" />
+                                    </ChartSeries>
+                                }
+                                else 
+                                {
+                                    <ChartSeries Type="ChartSeriesType.Line"
+                                                 Name="CTQ 측정값"
+                                                 Data="@gListCtq"
+                                                 Color="blue"
+                                                 Field="value3">
+                                        <ChartSeriesMarkers Size="3" />
+                                    </ChartSeries>
+                                }
                             </ChartSeriesItems>
 
-                            <ChartTitle Text="@gTargetModel" Description="Product Sales by Year and Country">
+                            <ChartTitle Text="@gTargetModel" Description="XR graph">
                                 <ChartSubtitle Text="@gNormalSubtitle"></ChartSubtitle>
                             </ChartTitle>
 
-                            <ChartCategoryAxes>
-                                <ChartCategoryAxis>
-                                    <ChartCategoryAxisPlotBands>
-                                        <ChartCategoryAxisPlotBand From="@gGraphLcl" To="gGraphLcl" Color="blue" Opacity="1.0"></ChartCategoryAxisPlotBand>
-                                        <ChartCategoryAxisPlotBand From="50" To="50" Color="red" Opacity="1.0"></ChartCategoryAxisPlotBand>
-                                        <ChartCategoryAxisPlotBand From="@gGraphUcl" To="gGraphUcl" Color="blue" Opacity="1.0"></ChartCategoryAxisPlotBand>
-                                        <ChartCategoryAxisPlotBand From="@gSigma1L" To="gSigma1U" Color="green" Opacity="0.3"></ChartCategoryAxisPlotBand>
-                                        <ChartCategoryAxisPlotBand From="@gSigma2L" To="gSigma2U" Color="red" Opacity="0.3"></ChartCategoryAxisPlotBand>
-                                        <ChartCategoryAxisPlotBand From="@gSigma3L" To="gSigma3U" Color="yellow" Opacity="0.3"></ChartCategoryAxisPlotBand>
-                                    </ChartCategoryAxisPlotBands>
-                                    <ChartCategoryAxisLabels Step="10" />
-                                </ChartCategoryAxis>
-                            </ChartCategoryAxes>
+                            <ChartValueAxes>
+                                <ChartValueAxis Min="@yMin" Max="@yMax">
+                                    <ChartValueAxisPlotBands>
+                                        <ChartValueAxisPlotBand From="@y3SigL" To="@y3SigU" Color="#ffff00" Opacity="0.1"></ChartValueAxisPlotBand>
+                                        <ChartValueAxisPlotBand From="@yCL1" To="@yCL2" Color="black" Opacity="0.9"></ChartValueAxisPlotBand>
+                                        <ChartValueAxisPlotBand From="@yCU1" To="@yCU2" Color="black" Opacity="0.9"></ChartValueAxisPlotBand>
+                                        <ChartValueAxisPlotBand From="@yAvg1" To="@yAvg2" Color="green" Opacity="0.5"></ChartValueAxisPlotBand>
+                                    </ChartValueAxisPlotBands>
+                                </ChartValueAxis>
+                            </ChartValueAxes>
 
                         </TelerikChart>
                     </Content>
@@ -316,6 +331,7 @@
     public double gAvg = 0;
     public double gStdDev = 0;
 
+    //--- For X축 : index로 변환
     public double gGraphLcl = 0;
     public double gGraphUcl = 0;
     public double gSigma1L = 0;
@@ -324,6 +340,22 @@
     public double gSigma2U = 0;
     public double gSigma3L = 0;
     public double gSigma3U = 0;
+
+    //--- For Y축
+    public double yMin = 40;
+    public double yMax = 50;
+    public double yAvg1 = 45;
+    public double yAvg2 = 45.5;
+    public double ySL1 = 0;
+    public double ySL2 = 0;
+    public double ySU1 = 0;
+    public double ySU2 = 0;
+    public double yCL1 = 0;
+    public double yCL2 = 0;
+    public double yCU1 = 0;
+    public double yCU2 = 0;
+    public double y3SigL = 0;
+    public double y3SigU = 0;
 
     Telerik.Blazor.Components.TelerikChart theChart { get; set; }
     Telerik.Blazor.Components.TelerikChart theChartXR { get; set; }
@@ -340,6 +372,8 @@
         gStartYear = gEndYear.AddMonths(-12);
         gCpkStats = new List<CPK_Statistics>();
         List_Models();
+        Retrieve_TestData_For_Model();
+        theChartXR?.Refresh();
     }
 
     //======================================================================
@@ -392,11 +426,19 @@
 
     }
 
+
+    // ======================================================================
+    //      모델이 변경되면, 해당 모델의 TestNo List를 새로 가져온다.
+    private async void ChannelChangeHandler(object theUserInput)
+    {
+        Retrieve_TestData_For_Model();
+    }
+
     // ======================================================================
     //-- Need Model Name, Test#, ChannelNo
     //     1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다. (gListCtq)
     //     2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소,
-    private void Retrieve_TestData_For_Model()
+    private async void Retrieve_TestData_For_Model()
     {
         if (gTargetModel == null || gTargetModel.Length < 3 ||
             gTargetNumber == null || gTargetNumber.Length < 3)
@@ -493,6 +535,8 @@
         //#####################################################
         //--- Extract 정규분포, X-R그래프 관련 변수들
         Extract_Normal_XR_Values();
+
+        await Task.Delay(500);
     }
 
     //======================================================================
@@ -676,7 +720,21 @@
         gSigma2U = GetXIndex(xMin, xMax, step, gAvg + 2 * gStdDev);
         gSigma3L = GetXIndex(xMin, xMax, step, gAvg - 3 * gStdDev);
         gSigma3U = GetXIndex(xMin, xMax, step, gAvg + 3 * gStdDev);
-        theChart.Refresh();
+
+        //--- For Y축
+        yMin = gAvg - 4 * gStdDev;
+        yMax = gAvg + 4 * gStdDev;
+        yAvg1 = gAvg - (yMax-yMin)/500;
+        yAvg2 = gAvg + (yMax - yMin) / 500;
+        yCL1 = gSelectedLcl - (yMax - yMin) / 500;
+        yCL2 = gSelectedLcl + (yMax - yMin) / 500;
+        yCU1 = gSelectedUcl - (yMax - yMin) / 500;
+        yCU2 = gSelectedUcl + (yMax - yMin) / 500;
+        y3SigL = gAvg - 3 * gStdDev;
+        y3SigU = gAvg + 3 * gStdDev;
+
+        theChart?.Refresh();
+        theChartXR?.Refresh();
     }
 
     //### 정규분포: x에 대한 y값 계산
