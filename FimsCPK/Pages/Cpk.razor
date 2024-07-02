@@ -16,7 +16,7 @@
 
 <TelerikCard>
     @************************** PAGE HEADER 구성 *************************************************************
-    기간설정 (년/월~년/월), 모델 선택, 테스트항목 선택,   (채널선택==> 모든 채널 표시), CPK_CHECK 버튼
+        기간설정 (년/월~년/월), 모델 선택, 테스트항목 선택,   (채널선택==> 모든 채널 표시), CPK_CHECK 버튼
     ********************************************************************************************************@
     <CardHeader>
         &nbsp;&nbsp;&nbsp
@@ -328,7 +328,6 @@
 
     public int gSpanYear = 0;
     public int gPageSize = 100;
-    bool ExportAllPages { get; set; }
     string gLastSelectedModel = "";
 
     //--- lcl/ucl, lsl,usl
@@ -343,14 +342,12 @@
     public TelerikComboBox<string, string> ComboBoxRef { get; set; }
 
     //--- For Excel Export
+    bool ExportAllPages { get; set; }
     string gStrFilename { get; set; }   // exported excel filename : CtqList_ModelName_TestNumber_yyyy-mm-dd_HH.mm.ss.xlsx
 
 
-    // ======================================================================
-    /// <summary>
-    ///     초기화 : excel filename 지정, 기본기간지정, 변수 초기화, 해당 ModelName 추출
-    /// </summary>
-    /// <returns></returns>
+    //======================================================================
+    //     초기화 : excel filename 지정, 기본기간지정, 변수 초기화, 해당 ModelName 추출
     protected override async Task OnInitializedAsync()
     {
         gStrFilename = "CtqList_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
@@ -359,7 +356,7 @@
         List_Models();
     }
 
-    // ======================================================================
+    //======================================================================
     //      Cpk관리할 Model 이름 List를 DB에서 읽어 온다.
     private void List_Models()
     {
@@ -409,10 +406,8 @@
 
     // ======================================================================
     //-- Need Model Name, Test#, ChannelNo
-    /// <summary>
-    ///     1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다. (gListCtq)
-    ///     2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소,
-    /// </summary>
+    //     1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다. (gListCtq)
+    //     2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소,
     private void Retrieve_TestData_For_Model()
     {
 

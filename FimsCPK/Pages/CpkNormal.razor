@@ -9,34 +9,17 @@
 @inject IJSRuntime JsRuntime
 @inject CpkService cpkService
 
-<style>
-    .k-grid tbody {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 0.5;
-        font-size: 12px;
-        font-family: calibri;
-        /* background-color: lightyellow;*/
-    }
-
-    .k-grid-header .k-header {
-        font-weight: bold;
-        font-size: 14px;
-        font-family: calibri;
-        padding: 1px;
-        margin: 1px;
-        text-align: center;
-        background-color: lightcyan;
-    }
-</style>
-
-
+@************************** PAGE TITLE *****************************************************************@
 <PageTitle>Fims Dashboard</PageTitle>
 <div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 정규분포 </div>
 
 <TelerikCard>
-
+    @************************** PAGE HEADER 구성 *************************************************************
+        기간설정 (년/월~년/월), 모델 선택,     테스트번호선택, 채널선택,     정규분포 버튼
+        gSetDuration         gTargetModel   gTestNumber  gChannelName  Retrieve_TestData_For_Model
+        gStartYear
+        gEndYear
+    ********************************************************************************************************@
     <CardHeader>
         &nbsp;&nbsp;&nbsp
         <label for="myIncludeDate" ThemeColor="success" style="color:red ">&nbsp;&nbsp;&nbsp;기간지정</label>
@@ -69,8 +52,10 @@
         <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Model" Icon="FontIcon.Search">정규분포 그래프</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
     </CardHeader>
 
+    @************************** PAGE BODY 구성 ***************************************************************
+        검사리스트(Grid)        정규분포그래프       X-R 관리도
+    ********************************************************************************************************@
     <CardBody>
-
         <TelerikTileLayout Columns="6"
                            ColumnWidth="18%"
                            RowHeight="200px"
@@ -112,8 +97,6 @@
                             </GridExport>
 
                             <GridColumns>
-
-
                                 <GridColumn Field=@nameof(CPK_Items.sn) Width="30px" Title="SN" Sortable=true />
                                 <GridColumn Field=@nameof(CPK_Items.workdate) Width="60px" Title="검사날짜" Sortable=true />
                                 <GridColumn Field=@nameof(CPK_Items.value1) Width="30px" Title="CH1값" Sortable=true />
@@ -184,7 +167,7 @@
                         <h6 style="color:green"><strong>avg:@gAvg, std:@gStdDev, lcl:@gSelectedLcl ucl:@gSelectedUcl</strong></h6>
                     </HeaderTemplate>
                     <Content>
-                        <TelerikChart Height="100%" Width="100%" @ref="theChart">
+                        <TelerikChart Height="100%" Width="100%" @ref="theChartXR">
                             <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
                             <ChartLegend Visible="false"></ChartLegend>
                             <ChartSeriesItems>
@@ -230,7 +213,12 @@
 
 </TelerikCard>
 
+@************************** 프로그램 CODE ***************************************************************
+        구조체 정의:         CPK_Items, CPK_Statistics,
+********************************************************************************************************@
 @code {
+
+    //--- Cpk.razor와 동일한 구조체
     public class CPK_Items
     {
         public string sn { get; set; }
@@ -239,15 +227,6 @@
         public float value2 { get; set; }
         public float value3 { get; set; }
     };
-
-    public class CPK_NormalDist
-    {
-        public string xCategory { get; set; }
-        public double value1 { get; set; }
-        public double value2 { get; set; }
-        public double value3 { get; set; }
-    };
-
 
     public class CPK_Statistics
     {
@@ -271,38 +250,43 @@
     };
 
 
-    static List<string> gModelNames = new List<string>();
-    List<string> gTestNumbers { get; set; } = new List<string>();
-    static string[] gChananelNames = { "1", "2", "3" };
+    //###### 정규분포용 구조체
+    public class CPK_NormalDist
+    {
+        public string xCategory { get; set; }
+        public double value1 { get; set; }
+        public double value2 { get; set; }
+        public double value3 { get; set; }
+    };
 
+    //--- Data For Combobox : Model, TestNo, Channel#
+    private List<string> gModelNames = new List<string>();
+    private List<string> gTestNumbers { get; set; } = new List<string>();
+
+    //--- For GridData/ChartData
     public List<CPK_Items> gListCtq { get; set; }
     public List<CPK_Items> gListCtqBlank { get; set; } = new List<CPK_Items>();
-    public List<CPK_Statistics> gCpkStats { get; set; }
-    private TelerikGrid<CPK_Statistics> GridRef { get; set; }
-    private List<CPK_NormalDist> gNormalValue { get; set; } = new List<CPK_NormalDist>();
 
-    public DateTime gMinYear = new DateTime(2023, 1, 1, 0, 0, 0);
-    public DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
+    //--- For GridData
+    private TelerikGrid<CPK_Statistics> GridRef { get; set; }   // 검색후 Ctq List Rebind하기 위해 (시간차로 표시 안될 수 있기 때문에)
+    public List<CPK_Statistics> gCpkStats { get; set; }         // Cpk통계 Grid에 표시할 값
 
+    //--- 검색 기간 : 2023~2030 사이
+    private DateTime gMinYear = new DateTime(2023, 1, 1, 0, 0, 0);
+    private DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
     private DateTime gStartYear = DateTime.Now;
     private DateTime gEndYear = DateTime.Now;
 
     private string gTargetModel = "";
     private string gTargetNumber = "";
     private int gTargetOnlyNumber = 0;
-    private string gNormalSubtitle = "평균=-, 표준편차=-";
     private string gChannelName = "Channel1";
     private bool gSetDuration = false;
     private int gCounter = 0;
 
     public int gSpanYear = 0;
     public int gPageSize = 100;
-    bool ExportAllPages { get; set; }
-    string gStrFilename { get; set; }
     string gLastSelectedModel = "";
-    public bool gCh1Visible { get; set; } = true;
-    public bool gCh2Visible { get; set; } = true;
-    public bool gCh3Visible { get; set; } = true;
 
     //--------------------------------------------------------
     //--- lcl/ucl, lsl,usl
@@ -313,7 +297,19 @@
     public double gCh3Lcl { get; set; }
     public double gCh3Ucl { get; set; }
 
-    //--- 그래프에 표시될 값 : 선택된 채널에 따라 설정
+    //--- TestNo Combobox refresh를 위한 것
+    public TelerikComboBox<string, string> ComboBoxRef { get; set; }
+
+    //--- For Excel Export
+    bool ExportAllPages { get; set; }
+    string gStrFilename { get; set; }   // exported excel filename : CtqList_ModelName_TestNumber_yyyy-mm-dd_HH.mm.ss.xlsx
+
+    //###### 정규분포용 변수들
+    private string[] gChananelNames = { "1", "2", "3" };
+    private List<CPK_NormalDist> gNormalValue { get; set; } = new List<CPK_NormalDist>();
+    private string gNormalSubtitle = "평균=-, 표준편차=-";
+
+    //###### 그래프에 표시될 값 : 선택된 채널에 따라 설정
     public string gSelectedValue = "";
     public double gSelectedLcl = 0;
     public double gSelectedUcl = 0;
@@ -329,11 +325,15 @@
     public double gSigma3L = 0;
     public double gSigma3U = 0;
 
-
-    //--- TestNo Combobox refresh를 위한 것
-    public TelerikComboBox<string, string> ComboBoxRef { get; set; }
     Telerik.Blazor.Components.TelerikChart theChart { get; set; }
+    Telerik.Blazor.Components.TelerikChart theChartXR { get; set; }
 
+    //***************************************************************************
+    //      Cpk.razor와 동일
+    //***************************************************************************
+
+    //======================================================================
+    //     초기화 : excel filename 지정, 기본기간지정, 변수 초기화, 해당 ModelName 추출
     protected override async Task OnInitializedAsync()
     {
         gStrFilename = "CtqList_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
@@ -342,33 +342,31 @@
         List_Models();
     }
 
+    //======================================================================
+    //      Cpk관리할 Model 이름 List를 DB에서 읽어 온다.
     private void List_Models()
     {
-        //--- if alread models are listed-up, skip
-        if (gModelNames.Count > 0)
-            return;
-
-        List<CpkItem> tCpkModelList;
-
-        using (var db = new FimsDbContext())
+        gModelNames = cpkService.GetCpkModelNames();
+        //--- 첫번째 모델, 첫번째 TestNo 설정
+        if (gModelNames.Count != 0)
         {
-            tCpkModelList = db.CpkItems.ToList();
-        }
-
-        var models = from cpkModel in tCpkModelList
-                     orderby cpkModel.Model
-                     group cpkModel by cpkModel.Model into grp
-                     select grp.Key;
-
-        foreach (var item in models)
-        {
-            gModelNames.Add(item.ToString());
+            gTargetModel = gModelNames[0];
+            Refresh_TestNo_For_Model(gTargetModel);
         }
     }
 
+    // ======================================================================
+    //      모델이 변경되면, 해당 모델의 TestNo List를 새로 가져온다.
     private async void ModelChangeHandler(object theUserInput)
     {
         string selectedModel = theUserInput.ToString();
+        Refresh_TestNo_For_Model(selectedModel);
+    }
+
+    // ======================================================================
+    //      모델이 변경되면, 해당 모델의 TestNo List를 새로 가져온다.
+    private void Refresh_TestNo_For_Model(string selectedModel)
+    {
         if (selectedModel == gLastSelectedModel)
             return;
 
@@ -388,15 +386,16 @@
 
             gTargetNumber = gTestNumbers[0];
         }
-        ComboBoxRef.Rebind();
 
-        gChannelName = "1";
+        ComboBoxRef?.Rebind();
+        gChannelName = "1";         //###### 정규분포 Only
+
     }
 
+    // ======================================================================
     //-- Need Model Name, Test#, ChannelNo
-    /// <summary>
-    ///
-    /// </summary>
+    //     1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다. (gListCtq)
+    //     2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소,
     private void Retrieve_TestData_For_Model()
     {
         if (gTargetModel == null || gTargetModel.Length < 3 ||
@@ -406,17 +405,23 @@
             return;
         }
 
-        string strStartDate = gStartYear.ToString("yyyy-MM-dd");
-        string strEndDate = gEndYear.ToString("yyyy-MM-dd");
+        //--- Model이나 TestNo가 지정되어야만 한다.
+        if (gTargetModel == null || gTargetModel.Length < 3 ||
+            gTargetNumber == null || gTargetNumber.Length < 3)
+        {
+            Alert("Model, TestNo를 선택해야 합니다");
+            return;
+        }
 
+        //--- TestNo 콤보박스에는 Test#+TestName이 들어가 있다. Test#만 추출한다. 통계 data 계산할때 필요.
+        string strTargetNo = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")") - 1);
+        gTargetOnlyNumber = int.Parse(strTargetNo);
 
-        string strNumber = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")") - 1);
-        gTargetOnlyNumber = int.Parse(strNumber);
-        string strModel = gTargetModel;
-
+        //--- 1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다. (ch1~3 값이 모두 0인 것은 제외한다.)
         using (var db = new FimsDbContext())
         {
             if (gSetDuration == false) // 날짜 무시
+            {
                 gListCtq = (from sheet in db.Tsheets
                             from item in db.Titems
                             orderby sheet.InspectionEndDateTime
@@ -431,7 +436,12 @@
                                     value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
                                     value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
                                 }).ToList();
+            }
             else
+            {
+                string strStartDate = gStartYear.ToString("yyyy-MM-dd");
+                string strEndDate = gEndYear.ToString("yyyy-MM-dd");
+
                 gListCtq = (from sheet in db.Tsheets
                             from item in db.Titems
                             orderby sheet.InspectionEndDateTime
@@ -448,43 +458,156 @@
                                     value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
                                     value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
                                 }).ToList();
+            }
 
             gListCtq = gListCtq.Where(x => x.value1 != 0 || x.value2 != 0 || x.value3 != 0).ToList();
             gCounter = gListCtq.Count();
 
-            //---- 계산 : gCpkStats 값 채움
+            //----------------------------------------------------------------------------------------------
+            //--- 2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소,
             CPK_Statistics record;
-
             gCpkStats.Clear();
-            gCh1Visible = false;
-            gCh2Visible = false;
-            gCh3Visible = false;
+            //###### gCh1~3Visible = false 문장은 없음.
 
             record = GetStatistics(1, gListCtq);
             if (record.sum != 0)
             {
                 gCpkStats.Add(record);
-                gCh1Visible = true;
             }
 
             record = GetStatistics(2, gListCtq);
             if (record.sum != 0)
             {
                 gCpkStats.Add(record);
-                gCh2Visible = true;
             }
 
             record = GetStatistics(3, gListCtq);
             if (record.sum != 0)
             {
                 gCpkStats.Add(record);
-                gCh3Visible = true;
             }
 
             GridRef?.Rebind();
         }
 
+        //#####################################################
+        //--- Extract 정규분포, X-R그래프 관련 변수들
+        Extract_Normal_XR_Values();
+    }
 
+    //======================================================================
+    //--- 특정 채널 data에 대해 각종 통계값 계산
+    //    (평균, 최소, 최대, 표준편차, 합계, lsl, usl, lcl, ucl)
+    //--- Sample 수가 30개가 넘는 경우에
+    //    (cp, cpk, 양품수) (chart에 표시할 lcl/ucl값 = gChxLcl/gChxUcl)
+    private CPK_Statistics GetStatistics(int ixCh, List<CPK_Items> cpkitems)
+    {
+        List<float> items;
+
+        if (ixCh == 1)
+        {
+            items = cpkitems.Select(n => n.value1).ToList();
+        }
+        else if (ixCh == 2)
+        {
+            items = cpkitems.Select(n => n.value2).ToList();
+        }
+        else if (ixCh == 3)
+        {
+            items = cpkitems.Select(n => n.value3).ToList();
+        }
+        else
+        {
+            return null;
+        }
+
+        string strLSL = "";
+        string strUSL = "";
+        CPK_Statistics record = new CPK_Statistics();
+
+        record.name = "Ch-" + ixCh.ToString();
+        record.num = items.Count();
+        if (record.num >= 30)
+        {
+            record.average = items.Average();
+            record.min = items.Min();
+            record.max = items.Max();
+            record.stddev = getStandardDeviation(items);
+            record.sum = items.Sum();
+
+            //--- get lsl,usl, lcl, ucl
+            cpkService.GetSL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
+            record.lsl = strLSL;
+            record.usl = strUSL;
+            cpkService.GetCL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
+            record.lcl = strLSL;
+            record.ucl = strUSL;
+
+            if (record.sum != 0)
+            {
+                double dl = double.Parse(record.lcl ?? "0");
+                double du = double.Parse(record.ucl ?? "0");
+
+                switch (ixCh)
+                {
+                    case 1:
+                        gCh1Lcl = dl;
+                        gCh1Ucl = du;
+                        break;
+                    case 2:
+                        gCh2Lcl = dl;
+                        gCh2Ucl = du;
+                        break;
+                    case 3:
+                        gCh3Lcl = dl;
+                        gCh3Ucl = du;
+                        break;
+                }
+
+                //--- cpk, cp 계산
+                //    Cp = (UCL-LCL)/(6*표준편차)
+                //    Cpk = MIN( (평균-LSL)/(3*표준편차), (USL-평균)/(3*표준편차))
+                dl = double.Parse(record.lcl ?? "0");
+                du = double.Parse(record.ucl ?? "0");
+                record.cp = (du - dl) / (6 * record.stddev);
+                double cpk1 = (record.average - dl) / (3 * record.stddev);
+                double cpk2 = (du - record.average) / (3 * record.stddev);
+                record.cpk = Math.Min(cpk1, cpk2);
+
+                float fdl = (float)dl;
+                float fdu = (float)du;
+                record.numGood = items.Where(x => x >= fdl && x <= fdu).Count();
+            }
+        }
+
+        return record;
+    }
+
+    //======================================================================
+    //--- 표준편차 계산
+    private float getStandardDeviation(List<float> floatList)
+    {
+        float average = floatList.Average();
+        float sumOfDerivation = 0;
+        foreach (float value in floatList)
+        {
+            sumOfDerivation += (value) * (value);
+        }
+        double sumOfDerivationAverage = sumOfDerivation / floatList.Count;
+        return (float)Math.Sqrt(sumOfDerivationAverage - (average * average));
+    }
+
+    //======================================================================
+    //--- 경고 Message 표시
+    private async Task Alert(string message)
+    {
+        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
+    }
+
+    //#########################################################################
+    //--- 정규분포, X-R Graph에 필요한 값들을추출하는 함수.
+    private void Extract_Normal_XR_Values()
+    {
         //--- select graph value
         gSelectedValue = "value" + gChannelName;
         string chname = "Ch-" + gChannelName;
@@ -539,7 +662,7 @@
             CPK_NormalDist nd = new CPK_NormalDist();
             nd.value1 = NormalDistribution(x, gAvg, gStdDev);
             nd.xCategory = x.ToString("#.##");
-            nd.value2 = ((int)(x*1000))/1000.0;
+            nd.value2 = ((int)(x * 1000)) / 1000.0;
             gNormalValue.Add(nd);
             ix++;
         }
@@ -549,128 +672,27 @@
         gGraphUcl = GetXIndex(xMin, xMax, step, gSelectedUcl);
         gSigma1L = GetXIndex(xMin, xMax, step, gAvg - gStdDev);
         gSigma1U = GetXIndex(xMin, xMax, step, gAvg + gStdDev);
-        gSigma2L = GetXIndex(xMin, xMax, step, gAvg - 2*gStdDev);
-        gSigma2U = GetXIndex(xMin, xMax, step, gAvg + 2*gStdDev);
-        gSigma3L = GetXIndex(xMin, xMax, step, gAvg - 3*gStdDev);
-        gSigma3U = GetXIndex(xMin, xMax, step, gAvg + 3*gStdDev);
+        gSigma2L = GetXIndex(xMin, xMax, step, gAvg - 2 * gStdDev);
+        gSigma2U = GetXIndex(xMin, xMax, step, gAvg + 2 * gStdDev);
+        gSigma3L = GetXIndex(xMin, xMax, step, gAvg - 3 * gStdDev);
+        gSigma3U = GetXIndex(xMin, xMax, step, gAvg + 3 * gStdDev);
         theChart.Refresh();
     }
 
+    //### 정규분포: x에 대한 y값 계산
     private double NormalDistribution(double x, double mean, double stddev)
     {
         double expPart = Math.Exp(-Math.Pow(x - mean, 2) / (2 * Math.Pow(stddev, 2)));
         return (1 / (stddev * Math.Sqrt(2 * Math.PI))) * expPart;
     }
 
-    //--- return index of Value in num : dMin~dMax : num
-    //    
+    //### 정규분포: return index of Value in num : dMin~dMax : num
+    //             X축은 0~point 수만큼으로 구분 되어 있다. 실제 값에 해당되는 index를 구한다.
+    //             sigma1~3 범위를 구하기 위한 것임.
     private double GetXIndex(double dMin, double dMax, double step, double dValue)
     {
         double diff = dValue - dMin;
         double dix = Math.Ceiling(diff / step);
         return dix;
-    }
-
-    private async Task Alert(string message)
-    {
-        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
-    }
-
-    // gTargetModel, gTargetNumber
-    private CPK_Statistics GetStatistics(int ixCh, List<CPK_Items> cpkitems)
-    {
-        List<float> items;
-
-        if (ixCh == 1)
-        {
-            items = cpkitems.Select(n => n.value1).ToList();
-        }
-        else if (ixCh == 2)
-        {
-            items = cpkitems.Select(n => n.value2).ToList();
-        }
-        else if (ixCh == 3)
-        {
-            items = cpkitems.Select(n => n.value3).ToList();
-        }
-        else
-        {
-            return null;
-        }
-
-        string strLSL = "";
-        string strUSL = "";
-        CPK_Statistics record = new CPK_Statistics();
-
-        record.name = "Ch-" + ixCh.ToString();
-        record.num = items.Count();
-        if (record.num > 30)
-        {
-            record.average = items.Average();
-            record.min = items.Min();
-            record.max = items.Max();
-            record.stddev = getStandardDeviation(items);
-            record.sum = items.Sum();
-
-            //--- get lsl,usl, lcl, ucl
-            cpkService.GetSL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
-            record.lsl = strLSL;
-            record.usl = strUSL;
-            cpkService.GetCL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
-            record.lcl = strLSL;
-            record.ucl = strUSL;
-
-
-            if (record.sum != 0)
-            {
-                double dl = double.Parse(record.lcl ?? "0");
-                double du = double.Parse(record.ucl ?? "0");
-
-                switch (ixCh)
-                {
-                    case 1:
-                        gCh1Lcl = dl;
-                        gCh1Ucl = du;
-                        break;
-                    case 2:
-                        gCh2Lcl = dl;
-                        gCh2Ucl = du;
-                        break;
-                    case 3:
-                        gCh3Lcl = dl;
-                        gCh3Ucl = du;
-                        break;
-                }
-
-                //--- cpk, cp 계산
-                //    Cp = (UCL-LCL)/(6*표준편차)
-                //    Cpk = MIN( (평균-LSL)/(3*표준편차), (USL-평균)/(3*표준편차))
-                dl = double.Parse(record.lcl ?? "0");
-                du = double.Parse(record.ucl ?? "0");
-                record.cp = (du - dl) / (6 * record.stddev);
-                double cpk1 = (record.average - dl) / (3 * record.stddev);
-                double cpk2 = (du - record.average) / (3 * record.stddev);
-                record.cpk = Math.Min(cpk1, cpk2);
-
-                float fdl = (float)dl;
-                float fdu = (float)du;
-                record.numGood = items.Where(x => x >= fdl && x <= fdu).Count();
-
-            }
-        }
-
-        return record;
-    }
-
-    private float getStandardDeviation(List<float> floatList)
-    {
-        float average = floatList.Average();
-        float sumOfDerivation = 0;
-        foreach (float value in floatList)
-        {
-            sumOfDerivation += (value) * (value);
-        }
-        double sumOfDerivationAverage = sumOfDerivation / floatList.Count;
-        return (float)Math.Sqrt(sumOfDerivationAverage - (average * average));
     }
 }
