@@ -1,8 +1,13 @@
 ﻿@inherits LayoutComponentBase
+@using FimsCPK.Entities
+@using Microsoft.AspNetCore.Identity
 @using Telerik.DataSource
 @using Telerik.DataSource.Extensions
 @using Telerik.FontIcons;
 @using Telerik.SvgIcons;
+
+@inject UserManager<AspNetUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
 
 <TelerikRootComponent>
     <div class="header">
@@ -10,28 +15,49 @@
             <div class="menu-button">
                 <TelerikButton Icon="@SvgIcon.Menu" OnClick="ToggleMenuDrawer"></TelerikButton>
             </div>
-            <img style="width: 32px;" src="images/fimsinspect.svg">
-            <div class="title">
-                <h1>@($"{Constants.FimsCpkTitle} ({Constants.FimsCpkVersion})")</h1>
-            </div>
             @{
                 if (!WindowWidthSmall)
                 {
                     <DigitalClock></DigitalClock>
                 }
             }
+            <div class="title">
+                <h1>@($"{Constants.FimsCpkTitle} ({Constants.FimsCpkVersion})")</h1>
+            </div>
+            <AuthorizeView>
+                <Authorized>
+                    &nbsp;&nbsp;@gLoggedId&nbsp;&nbsp;
+                    <NavLink class="text-decoration-none" href="terminate">Logout</NavLink>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="w-100 d-flex justify-content-end gap-5">
+                        <NavLink class="text-decoration-none" href="Identity/Account/Login">Login</NavLink>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+            &nbsp;&nbsp;
+            &nbsp;&nbsp;
+            <a href="https://www.fstc.co.kr" class="reload">FST</a>
         </div>
     </div>
 
-    <TelerikDrawer @ref="FimsCpkDrawer"
-                   Data="@FimsCpkDrawerItems"
-                   Expanded="@DrawerExpanded"
-                   ExpandedChanged="((bool newValue) => ExpandedChangedHandler(newValue))"
-                   Width="160px" Mode="DrawerMode.Push" Position="DrawerPosition.Start" MiniMode="true">
-        <DrawerContent>
-            @Body
-        </DrawerContent>
-    </TelerikDrawer>
+    <AuthorizeView>
+        <Authorized>
+            <TelerikDrawer @ref="FimsCpkDrawer"
+                           Data="@FimsCpkDrawerItems"
+                           Expanded="@DrawerExpanded"
+                           ExpandedChanged="((bool newValue) => ExpandedChangedHandler(newValue))"
+                           Width="160px" Mode="DrawerMode.Push" Position="DrawerPosition.Start" MiniMode="true">
+                <DrawerContent>
+                    @Body
+                </DrawerContent>
+            </TelerikDrawer>
+        </Authorized>
+        <NotAuthorized>
+            <br />
+            <h1 class="text-center mb-5" style="color:red"> <a href="Identity/Account/Login">로그인</a></h1>
+        </NotAuthorized>
+    </AuthorizeView>
 
 </TelerikRootComponent>
 
@@ -42,10 +68,11 @@
     TelerikDrawer<DrawerItem> FimsCpkDrawer { get; set; }
     public IEnumerable<DrawerItem> FimsCpkDrawerItems { get; set; }
 
+    private string gLoggedId { get; set; } = "";
 
     List<DrawerItem> CpkPages { get; set; } = new List<DrawerItem>
     {
-        new DrawerItem { Text = "Home", Url = "/", Icon =SvgIcon.Home },
+        new DrawerItem { Text = "Home", Url = "/home", Icon =SvgIcon.Home },
         new DrawerItem { Separator = true },
         new DrawerItem { Text = "CPK 검색", Url = "/cpk", Icon = SvgIcon.Search },
         new DrawerItem { Text = "정규 분포", Url = "/cpknormal", Icon = SvgIcon.Graph },
@@ -71,6 +98,8 @@
     protected override async Task OnInitializedAsync()
     {
         DrawerExpanded = true;
+        string id = UserManager.GetUserName(HttpContextAccessor.HttpContext.User);
+        gLoggedId = UserManager.Users.Where(t => t.UserName == id).Select(x => x.HangulName).FirstOrDefault();
     }
 
     protected override async Task OnParametersSetAsync()

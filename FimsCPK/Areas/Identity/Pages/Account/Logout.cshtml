@@ -1,0 +1,16 @@
+﻿@page
+@using Microsoft.AspNetCore.Identity
+@using FimsCPK.Entities;
+@attribute [IgnoreAntiforgeryToken]
+@inject SignInManager<AspNetUser> SignInManager
+
+@functions {
+    public async Task<ActionResult> OnGet()
+    {
+        if (SignInManager.IsSignedIn(User))
+        {
+            await SignInManager.SignOutAsync();
+        }
+        return Redirect("~/");
+    }
+}

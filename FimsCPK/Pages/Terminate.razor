@@ -1,0 +1,20 @@
+﻿@page "/terminate"
+@using Microsoft.AspNetCore.Identity
+@using FimsCPK.Entities;
+@using FimsCPK.Pages;
+
+@inject NavigationManager NavManager
+@inject ILogger<Initialize> Logger
+@inject SignInManager<AspNetUser> SignInManager
+@inject UserManager<AspNetUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        string strUser = UserManager.GetUserName(HttpContextAccessor.HttpContext.User);
+        Logger.LogInformation("CPK관리 Logout:user=" + strUser);
+        NavManager.NavigateTo("/Identity/Account/Logout", true);
+    }
+
+}

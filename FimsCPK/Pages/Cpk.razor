@@ -13,253 +13,255 @@
 <PageTitle>Fims Dashboard</PageTitle>
 <div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> FIMS CPK </div>
 
+<AuthorizeView>
+    <Authorized>
+        <TelerikCard>
+            @************************** PAGE HEADER 구성 *************************************************************
+            기간설정 (년/월~년/월), 모델 선택, 테스트항목 선택,   (채널선택==> 모든 채널 표시), CPK_CHECK 버튼
+            ********************************************************************************************************@
+            <CardHeader>
+                &nbsp;&nbsp;&nbsp
+                <label for="myIncludeDate" ThemeColor="success" style="color:red ">&nbsp;&nbsp;&nbsp;기간지정</label>
+                <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
+                <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
+                                   BottomView="@CalendarView.Month"
+                                   Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
+                ~
+                <TelerikDatePicker @bind-Value="@gEndYear"
+                                   BottomView="@CalendarView.Month"
+                                   Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
 
-<TelerikCard>
-    @************************** PAGE HEADER 구성 *************************************************************
-        기간설정 (년/월~년/월), 모델 선택, 테스트항목 선택,   (채널선택==> 모든 채널 표시), CPK_CHECK 버튼
-    ********************************************************************************************************@
-    <CardHeader>
-        &nbsp;&nbsp;&nbsp
-        <label for="myIncludeDate" ThemeColor="success" style="color:red ">&nbsp;&nbsp;&nbsp;기간지정</label>
-        <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
-        <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
-                           BottomView="@CalendarView.Month"
-        Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
-        ~
-        <TelerikDatePicker @bind-Value="@gEndYear"
-        BottomView="@CalendarView.Month"
-        Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
+                <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
+                <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
+                                 Placeholder="Select Model..." ClearButton="true" Filterable="true">
+                </TelerikComboBox>
 
-        <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
-        <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
-                         Placeholder="Select Model..." ClearButton="true" Filterable="true">
-        </TelerikComboBox>  
-        
-        <label for="myTestNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
-        <TelerikComboBox @ref="@ComboBoxRef" 
-            Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber"
-                         Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
-        </TelerikComboBox>
+                <label for="myTestNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
+                <TelerikComboBox @ref="@ComboBoxRef"
+                                 Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber"
+                                 Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
+                </TelerikComboBox>
 
-        &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Model" Icon="FontIcon.Search">CPK체크</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
-    </CardHeader>
+                &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Model" Icon="FontIcon.Search">CPK체크</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
+            </CardHeader>
 
-    @************************** PAGE BODY 구성 ***************************************************************
-          검사리스트(Grid)        CPK통계(Grid)
-                                 
-                                 Chart for channel1
-                                 Chart for channel2
-                                 Chart for channel3
-    ********************************************************************************************************@
+            @************************** PAGE BODY 구성 ***************************************************************
+            검사리스트(Grid)        CPK통계(Grid)
 
-    <CardBody>
-        <TelerikTileLayout Columns="6"
-                           ColumnWidth="18%"
-                           RowHeight="200px"
-                           Reorderable="true"
-                           Resizable="true">
-            <TileLayoutItems>
-                <TileLayoutItem HeaderText="@gTargetModel"   RowSpan="4" ColSpan="2">
-                    <HeaderTemplate>
-                        <h4 style="color:blue"><strong>CTQ 값:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
-                    </HeaderTemplate>
-                    <Content>
-                        <TelerikGrid Class="cpk-grid"
-                                     Data="@gListCtq"
-                                     ConfirmDelete="true"
-                                     Pageable="true"
-                                     Groupable="false"
-                                     Sortable="false"
-                                     FilterMode="GridFilterMode.FilterMenu"
-                                     Resizable="true"
-                                     Reorderable="true"
-                                     EditMode="GridEditMode.Popup"
-                                     PageSize=@gPageSize
-                                     Navigable="true"
-                                     Height="100%">
+            Chart for channel1
+            Chart for channel2
+            Chart for channel3
+            ********************************************************************************************************@
 
-                            <GridToolBarTemplate>
-                                <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">Export to Excel</GridCommandButton>
-                            </GridToolBarTemplate>
+            <CardBody>
+                <TelerikTileLayout Columns="6"
+                                   ColumnWidth="18%"
+                                   RowHeight="200px"
+                                   Reorderable="true"
+                                   Resizable="true">
+                    <TileLayoutItems>
+                        <TileLayoutItem HeaderText="@gTargetModel" RowSpan="4" ColSpan="2">
+                            <HeaderTemplate>
+                                <h4 style="color:blue"><strong>CTQ 값:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
+                            </HeaderTemplate>
+                            <Content>
+                                <TelerikGrid Class="cpk-grid"
+                                             Data="@gListCtq"
+                                             ConfirmDelete="true"
+                                             Pageable="true"
+                                             Groupable="false"
+                                             Sortable="false"
+                                             FilterMode="GridFilterMode.FilterMenu"
+                                             Resizable="true"
+                                             Reorderable="true"
+                                             EditMode="GridEditMode.Popup"
+                                             PageSize=@gPageSize
+                                             Navigable="true"
+                                             Height="100%">
 
-                            <GridSettings>
-                                <GridPagerSettings InputType="PagerInputType.Buttons"
-                                                   ButtonCount="20"
-                                                   Position="PagerPosition.Top">
-                                </GridPagerSettings>
-                            </GridSettings>
+                                    <GridToolBarTemplate>
+                                        <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">Export to Excel</GridCommandButton>
+                                    </GridToolBarTemplate>
 
-                            <GridExport>
-                                <GridExcelExport FileName="@gStrFilename" AllPages="true" />
-                            </GridExport>
+                                    <GridSettings>
+                                        <GridPagerSettings InputType="PagerInputType.Buttons"
+                                                           ButtonCount="20"
+                                                           Position="PagerPosition.Top">
+                                        </GridPagerSettings>
+                                    </GridSettings>
 
-                            <GridColumns>
-                                <GridColumn Field=@nameof(CPK_Items.sn) Width="30px" Title="SN" Sortable=true />
-                                <GridColumn Field=@nameof(CPK_Items.workdate) Width="60px" Title="검사날짜" Sortable=true />
-                                <GridColumn Field=@nameof(CPK_Items.value1) Width="30px" Title="CH1값" Sortable=true />
-                                <GridColumn Field=@nameof(CPK_Items.value2) Width="30px" Title="CH2값" Sortable=true />
-                                <GridColumn Field=@nameof(CPK_Items.value3) Width="30px" Title="CH3값" Sortable=true />
+                                    <GridExport>
+                                        <GridExcelExport FileName="@gStrFilename" AllPages="true" />
+                                    </GridExport>
 
-@*
-                                <GridColumn Field=@nameof(Tsheet.ProductSerial) Width="30px" Title="SN" Sortable=true />
-                                <GridColumn Field=@nameof(Tsheet.InspectionEndDateTime) Width="40px" Title="검사날짜" Sortable=true />
-                                <GridColumn Field=@nameof(Tsheet.InspectorName) Width="30px" Title="값" Sortable=true />
-*@
-                            </GridColumns>
+                                    <GridColumns>
+                                        <GridColumn Field=@nameof(CPK_Items.sn) Width="30px" Title="SN" Sortable=true />
+                                        <GridColumn Field=@nameof(CPK_Items.workdate) Width="60px" Title="검사날짜" Sortable=true />
+                                        <GridColumn Field=@nameof(CPK_Items.value1) Width="30px" Title="CH1값" Sortable=true />
+                                        <GridColumn Field=@nameof(CPK_Items.value2) Width="30px" Title="CH2값" Sortable=true />
+                                        <GridColumn Field=@nameof(CPK_Items.value3) Width="30px" Title="CH3값" Sortable=true />
 
-                        </TelerikGrid>
-                    </Content>
-               </TileLayoutItem>
+                                        @*
+                                        <GridColumn Field=@nameof(Tsheet.ProductSerial) Width="30px" Title="SN" Sortable=true />
+                                        <GridColumn Field=@nameof(Tsheet.InspectionEndDateTime) Width="40px" Title="검사날짜" Sortable=true />
+                                        <GridColumn Field=@nameof(Tsheet.InspectorName) Width="30px" Title="값" Sortable=true />
+                                        *@
+                                    </GridColumns>
 
-                <TileLayoutItem HeaderText="CPK 통계" RowSpan="1" ColSpan="4">
-                    <HeaderTemplate>
-                        <h4 style="color:red"><strong>CPK 통계:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
-                    </HeaderTemplate>
-                    <Content>
-                        <TelerikGrid Data="@gCpkStats"
-                                     @ref="@GridRef"
-                                     Pageable="false"
-                                     Sortable="true"
-                                     FilterMode="@GridFilterMode.None"
-                                     Height="100%">
+                                </TelerikGrid>
+                            </Content>
+                        </TileLayoutItem>
 
-                            <GridColumns>
-                                <GridColumn Field=@nameof(CPK_Statistics.name) Width="30px" Title="Channel" Sortable=true />
-                                <GridColumn Field=@nameof(CPK_Statistics.num) Width="30px" Title="검사수" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.average) Width="30px" Title="평균" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" HeaderClass="k-justify-content-center demo-font-weight-bold" />
-                                <GridColumn Field=@nameof(CPK_Statistics.stddev) Width="30px" Title="표준편차" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.min) Width="30px" Title="최소값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.max) Width="30px" Title="최대값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.numGood) Width="30px" Title="양품수" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.cp) Width="30px" Title="Cp" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.cpk) Width="30px" Title="Cpk" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.lcl) Width="30px" Title="LCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.ucl) Width="30px" Title="UCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.lsl) Width="30px" Title="LSL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                <GridColumn Field=@nameof(CPK_Statistics.usl) Width="30px" Title="USL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                            </GridColumns>
-                        </TelerikGrid>
-                    </Content>
-                </TileLayoutItem>
-                
-                <TileLayoutItem HeaderText="CPK 그래프" RowSpan="3" ColSpan="4">
-                    <HeaderTemplate>
-                        <h4 style="color:green"><strong>CPK 그래프:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
-                    </HeaderTemplate>
-                    <Content>
+                        <TileLayoutItem HeaderText="CPK 통계" RowSpan="1" ColSpan="4">
+                            <HeaderTemplate>
+                                <h4 style="color:red"><strong>CPK 통계:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
+                            </HeaderTemplate>
+                            <Content>
+                                <TelerikGrid Data="@gCpkStats"
+                                             @ref="@GridRef"
+                                             Pageable="false"
+                                             Sortable="true"
+                                             FilterMode="@GridFilterMode.None"
+                                             Height="100%">
 
-                        @************************************************************************@
-                        @for(int i = 0; i < 3; i++)
-                        {
-                            var li = i;
-                            <TelerikChart Height="30%">
-                                <ChartLegend Visible="true"></ChartLegend>
-                                <ChartSeriesItems>
-                                    
-                                    @if (@gChVisible[li])
-                                    {
-                                        @if (li == 0)
-                                        {
-                                            <ChartSeries Type="ChartSeriesType.Line"
-                                                    Name="CTQ 측정값"
-                                                             Data="@gListCtq"
-                                                             Color="@gColorValues[li]"
-                                                             Field="@gChannelValues[li]">
-                                                    <ChartSeriesMarkers Size="4" />
-                                                    <ChartSeriesTooltip Visible="true">
-                                                        <Template>
-                                                            SN=@((context.DataItem as CPK_Items).sn)
-                                                            <br />
-                                                            검사날짜=@((context.DataItem as CPK_Items).workdate)
-                                                            <br />
-                                                            값="@((context.DataItem as CPK_Items).value1)"
-                                                        </Template>
-                                                    </ChartSeriesTooltip>
-                                            </ChartSeries>
-                                        }
-                                        else if (li == 1)
-                                        {
-                                            <ChartSeries Type="ChartSeriesType.Line"
-                                                         Name="CTQ 측정값"
-                                                         Data="@gListCtq"
-                                                         Color="@gColorValues[li]"
-                                                         Field="@gChannelValues[li]">
-                                                <ChartSeriesMarkers Size="4" />
-                                                <ChartSeriesTooltip Visible="true">
-                                                    <Template>
-                                                        SN=@((context.DataItem as CPK_Items).sn)
-                                                        <br />
-                                                        검사날짜=@((context.DataItem as CPK_Items).workdate)
-                                                        <br />
-                                                        값="@((context.DataItem as CPK_Items).value2)"
-                                                    </Template>
-                                                </ChartSeriesTooltip>
-                                            </ChartSeries>
-                                        }
-                                        else
-                                        {
-                                            <ChartSeries Type="ChartSeriesType.Line"
-                                                         Name="CTQ 측정값"
-                                                         Data="@gListCtq"
-                                                         Color="@gColorValues[li]"
-                                                         Field="@gChannelValues[li]">
-                                                <ChartSeriesMarkers Size="4" />
-                                                <ChartSeriesTooltip Visible="true">
-                                                    <Template>
-                                                        SN=@((context.DataItem as CPK_Items).sn)
-                                                        <br />
-                                                        검사날짜=@((context.DataItem as CPK_Items).workdate)
-                                                        <br />
-                                                        값="@((context.DataItem as CPK_Items).value3)"
-                                                    </Template>
-                                                </ChartSeriesTooltip>
-                                            </ChartSeries>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <ChartSeries Type="ChartSeriesType.Line"
-                                                     Name="CTQ 측정값"
-                                                     Data="@gListCtqBlank"
-                                                     Color=@gColorValues[li]
-                                                     Field=@gChannelValues[li]>
-                                        </ChartSeries>
-                                    }
-                                </ChartSeriesItems>
+                                    <GridColumns>
+                                        <GridColumn Field=@nameof(CPK_Statistics.name) Width="30px" Title="Channel" Sortable=true />
+                                        <GridColumn Field=@nameof(CPK_Statistics.num) Width="30px" Title="검사수" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.average) Width="30px" Title="평균" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" HeaderClass="k-justify-content-center demo-font-weight-bold" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.stddev) Width="30px" Title="표준편차" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.min) Width="30px" Title="최소값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.max) Width="30px" Title="최대값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.numGood) Width="30px" Title="양품수" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.cp) Width="30px" Title="Cp" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.cpk) Width="30px" Title="Cpk" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.lcl) Width="30px" Title="LCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.ucl) Width="30px" Title="UCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.lsl) Width="30px" Title="LSL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.usl) Width="30px" Title="USL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                    </GridColumns>
+                                </TelerikGrid>
+                            </Content>
+                        </TileLayoutItem>
 
-                                <ChartValueAxes>
-                                    <ChartValueAxis Min="@gyMin[li]" Max="@gyMax[li]">
-                                        <ChartValueAxisTitle Text="@gChNames[li]" />
-                                        <ChartValueAxisMajorGridLines Visible="true" />
-                                        <ChartValueAxisPlotBands>
-                                            <ChartValueAxisPlotBand From="@gyAvg[li]" To="@gyAvg2[li]" Color="green" Opacity="0.9"></ChartValueAxisPlotBand>
-                                            <ChartValueAxisPlotBand From="@gy3SigL[li]" To="@gy3SigH[li]" Color="yellow" Opacity="0.1"></ChartValueAxisPlotBand>
-                                            <ChartValueAxisPlotBand From="@gChLcl[li]" To="@gChLcl2[li]" Color="black" Opacity="0.9"></ChartValueAxisPlotBand>
-                                            <ChartValueAxisPlotBand From="@gChUcl[li]" To="@gChUcl2[li]" Color="black" Opacity="0.9"></ChartValueAxisPlotBand>
-                                        </ChartValueAxisPlotBands>
-                                    </ChartValueAxis>
-                                </ChartValueAxes>
-                                <ChartCategoryAxes>
-                                    <ChartCategoryAxis Categories="@gXAxisLabels">
-                                        <ChartCategoryAxisLabels Step="@gStep" />
-                                    </ChartCategoryAxis>
-                                </ChartCategoryAxes>
-                            </TelerikChart>
-                        }
-                        @************************************************************************@
+                        <TileLayoutItem HeaderText="CPK 그래프" RowSpan="3" ColSpan="4">
+                            <HeaderTemplate>
+                                <h4 style="color:green"><strong>CPK 그래프:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
+                            </HeaderTemplate>
+                            <Content>
 
-                    </Content>
-                </TileLayoutItem>
-                
+                                @************************************************************************@
+                                @for (int i = 0; i < 3; i++)
+                                {
+                                    var li = i;
+                                    <TelerikChart Height="30%">
+                                        <ChartLegend Visible="true"></ChartLegend>
+                                        <ChartSeriesItems>
 
-            </TileLayoutItems>
-        </TelerikTileLayout>
-    </CardBody>
-</TelerikCard>
+                                            @if (@gChVisible[li])
+                                            {
+                                                @if (li == 0)
+                                                {
+                                                    <ChartSeries Type="ChartSeriesType.Line"
+                                                                 Name="CTQ 측정값"
+                                                                 Data="@gListCtq"
+                                                                 Color="@gColorValues[li]"
+                                                                 Field="@gChannelValues[li]">
+                                                        <ChartSeriesMarkers Size="4" />
+                                                        <ChartSeriesTooltip Visible="true">
+                                                            <Template Context="ctx">
+                                                                SN=@((ctx.DataItem as CPK_Items).sn)
+                                                                <br />
+                                                                검사날짜=@((ctx.DataItem as CPK_Items).workdate)
+                                                                <br />
+                                                                값="@((ctx.DataItem as CPK_Items).value1)"
+                                                            </Template>
+                                                        </ChartSeriesTooltip>
+                                                    </ChartSeries>
+                                                }
+                                                else if (li == 1)
+                                                {
+                                                    <ChartSeries Type="ChartSeriesType.Line"
+                                                                 Name="CTQ 측정값"
+                                                                 Data="@gListCtq"
+                                                                 Color="@gColorValues[li]"
+                                                                 Field="@gChannelValues[li]">
+                                                        <ChartSeriesMarkers Size="4" />
+                                                        <ChartSeriesTooltip Visible="true">
+                                                            <Template Context="ctx">
+                                                                SN=@((ctx.DataItem as CPK_Items).sn)
+                                                                <br />
+                                                                검사날짜=@((ctx.DataItem as CPK_Items).workdate)
+                                                                <br />
+                                                                값="@((ctx.DataItem as CPK_Items).value2)"
+                                                            </Template>
+                                                        </ChartSeriesTooltip>
+                                                    </ChartSeries>
+                                                }
+                                                else
+                                                {
+                                                    <ChartSeries Type="ChartSeriesType.Line"
+                                                                 Name="CTQ 측정값"
+                                                                 Data="@gListCtq"
+                                                                 Color="@gColorValues[li]"
+                                                                 Field="@gChannelValues[li]">
+                                                        <ChartSeriesMarkers Size="4" />
+                                                        <ChartSeriesTooltip Visible="true">
+                                                            <Template Context="ctx">
+                                                                SN=@((ctx.DataItem as CPK_Items).sn)
+                                                                <br />
+                                                                검사날짜=@((ctx.DataItem as CPK_Items).workdate)
+                                                                <br />
+                                                                값="@((ctx.DataItem as CPK_Items).value3)"
+                                                            </Template>
+                                                        </ChartSeriesTooltip>
+                                                    </ChartSeries>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <ChartSeries Type="ChartSeriesType.Line"
+                                                             Name="CTQ 측정값"
+                                                             Data="@gListCtqBlank"
+                                                             Color=@gColorValues[li]
+                                                             Field=@gChannelValues[li]>
+                                                </ChartSeries>
+                                            }
+                                        </ChartSeriesItems>
 
+                                        <ChartValueAxes>
+                                            <ChartValueAxis Min="@gyMin[li]" Max="@gyMax[li]">
+                                                <ChartValueAxisTitle Text="@gChNames[li]" />
+                                                <ChartValueAxisMajorGridLines Visible="true" />
+                                                <ChartValueAxisPlotBands>
+                                                    <ChartValueAxisPlotBand From="@gyAvg[li]" To="@gyAvg2[li]" Color="green" Opacity="0.9"></ChartValueAxisPlotBand>
+                                                    <ChartValueAxisPlotBand From="@gy3SigL[li]" To="@gy3SigH[li]" Color="yellow" Opacity="0.1"></ChartValueAxisPlotBand>
+                                                    <ChartValueAxisPlotBand From="@gChLcl[li]" To="@gChLcl2[li]" Color="black" Opacity="0.9"></ChartValueAxisPlotBand>
+                                                    <ChartValueAxisPlotBand From="@gChUcl[li]" To="@gChUcl2[li]" Color="black" Opacity="0.9"></ChartValueAxisPlotBand>
+                                                </ChartValueAxisPlotBands>
+                                            </ChartValueAxis>
+                                        </ChartValueAxes>
+                                        <ChartCategoryAxes>
+                                            <ChartCategoryAxis Categories="@gXAxisLabels">
+                                                <ChartCategoryAxisLabels Step="@gStep" />
+                                            </ChartCategoryAxis>
+                                        </ChartCategoryAxes>
+                                    </TelerikChart>
+                                }
+                                @************************************************************************@
+
+                            </Content>
+                        </TileLayoutItem>
+
+
+                    </TileLayoutItems>
+                </TelerikTileLayout>
+            </CardBody>
+        </TelerikCard>
+    </Authorized>
+</AuthorizeView>
 @************************** 프로그램 CODE ***************************************************************
-        구조체 정의:         CPK_Items, CPK_Statistics, 
+        구조체 정의:         CPK_Items, CPK_Statistics,
 ********************************************************************************************************@
 @code {
     //--- 검사항목 List 구조체
@@ -289,10 +291,10 @@
         public double cp { get; set; }
         public double cpk { get; set; }
 
-        public string lcl {get; set; }
-        public string ucl {get; set; }
+        public string lcl { get; set; }
+        public string ucl { get; set; }
         public string lsl { get; set; }
-        public string usl {get; set; }
+        public string usl { get; set; }
     };
 
     //--- Data For Combobox : Model, TestNo, Channel#
@@ -309,10 +311,10 @@
 
 
     //--- 검색 기간 : 2023~2030 사이
-    private DateTime gMinYear   = new DateTime(2023, 1, 1, 0, 0, 0);
-    private DateTime gMaxYear   = new DateTime(2030, 1, 1, 0, 0, 0);
+    private DateTime gMinYear = new DateTime(2023, 1, 1, 0, 0, 0);
+    private DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
     private DateTime gStartYear = DateTime.Now;
-    private DateTime gEndYear   = DateTime.Now;
+    private DateTime gEndYear = DateTime.Now;
 
     private string gTargetModel = "";
     private string gTargetNumber = "";
@@ -348,14 +350,14 @@
     double[] gyMin = new double[3];
     double[] gyMax = new double[3];
     double[] gyAvg = new double[3];     // 배경색 Green 각 채널의 평균값 - 범위/500
-    double[] gyAvg2 = new double[3];    
+    double[] gyAvg2 = new double[3];
     double[] gy3SigL = new double[3];   // 배경색 노랑
     double[] gy3SigH = new double[3];
 
     string[] gChNames = new string[3] { "Ch-1", "Ch-2", "Ch-3" };
-    string[] gColorValues   = new string[3] { "red", "blue", "green" };
+    string[] gColorValues = new string[3] { "red", "blue", "green" };
     string[] gChannelValues = new string[3] { "value1", "value2", "value3" };
-    bool[]   gChVisible     = new bool[3]   { true, true, true };
+    bool[] gChVisible = new bool[3] { true, true, true };
 
     double gStep = 10;
     //======================================================================
@@ -426,7 +428,7 @@
     private void Retrieve_TestData_For_Model()
     {
         //--- Model이나 TestNo가 지정되어야만 한다.
-        if (gTargetModel == null || gTargetModel.Length < 3 || 
+        if (gTargetModel == null || gTargetModel.Length < 3 ||
             gTargetNumber == null || gTargetNumber.Length < 3)
         {
             Alert("Model, TestNo를 선택해야 합니다");
@@ -449,13 +451,13 @@
                                  sheet.Id == item.TsheetId &&
                                  item.TestNo == gTargetOnlyNumber
                             select new CPK_Items
-                        {
-                            sn = sheet.ProductSerial,
-                            workdate = sheet.InspectionEndDateTime,
-                            value1 = (float)(item.Ch1Data == null ? 0.0 : Math.Round(float.Parse(item.Ch1Data), 3)),
-                            value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
-                            value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
-                        }).ToList();
+                                {
+                                    sn = sheet.ProductSerial,
+                                    workdate = sheet.InspectionEndDateTime,
+                                    value1 = (float)(item.Ch1Data == null ? 0.0 : Math.Round(float.Parse(item.Ch1Data), 3)),
+                                    value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
+                                    value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
+                                }).ToList();
             }
             else
             {
@@ -470,14 +472,14 @@
                                  item.TestNo == gTargetOnlyNumber &&
                                  sheet.InspectionEndDateTime >= gStartYear &&
                                  sheet.InspectionEndDateTime <= gEndYear
-                            select new CPK_Items 
-                        {
-                                sn = sheet.ProductSerial,
-                                workdate = sheet.InspectionEndDateTime,
-                                value1 = (float)(item.Ch1Data == null ? 0.0 : Math.Round(float.Parse(item.Ch1Data), 3)),
-                                value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
-                                value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
-                        }).ToList();
+                            select new CPK_Items
+                                {
+                                    sn = sheet.ProductSerial,
+                                    workdate = sheet.InspectionEndDateTime,
+                                    value1 = (float)(item.Ch1Data == null ? 0.0 : Math.Round(float.Parse(item.Ch1Data), 3)),
+                                    value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
+                                    value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
+                                }).ToList();
             }
 
             gListCtq = gListCtq.Where(x => x.value1 != 0 || x.value2 != 0 || x.value3 != 0).ToList();
@@ -495,7 +497,7 @@
                 gStep = 30;
 
             //----------------------------------------------------------------------------------------------
-            //--- 2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소, 
+            //--- 2) 계산 : gCpkStats 값 채움. 항목수, 평균, 표준편차, 최대/최소,
             CPK_Statistics record;
 
             gCpkStats.Clear();
@@ -503,7 +505,7 @@
                 gChVisible[k] = false;
 
             record = GetStatistics(1, gListCtq);
-            if (record.sum!= 0)
+            if (record.sum != 0)
             {
                 gCpkStats.Add(record);
                 gChVisible[0] = true;
@@ -541,7 +543,8 @@
         if (ixCh == 1)
         {
             items = cpkitems.Select(n => n.value1).ToList();
-        } else if (ixCh == 2)
+        }
+        else if (ixCh == 2)
         {
             items = cpkitems.Select(n => n.value2).ToList();
         }
@@ -576,8 +579,8 @@
 
             gy3SigL[ix] = record.average - 3 * record.stddev;
             gy3SigH[ix] = record.average + 3 * record.stddev;
-            gyAvg[ix] = record.average-dspan;
-            gyAvg2[ix] = record.average+dspan;
+            gyAvg[ix] = record.average - dspan;
+            gyAvg2[ix] = record.average + dspan;
 
             //--- get lsl,usl, lcl, ucl
             cpkService.GetSL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
@@ -588,7 +591,8 @@
                 dl = double.Parse(record.lsl ?? "0");
                 du = double.Parse(record.usl ?? "0");
 
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 dl = 0;
                 du = 0;
@@ -605,8 +609,8 @@
 
             if (record.sum != 0)
             {
-                dl = double.Parse(record.lcl??"0");
-                du = double.Parse(record.ucl??"0");
+                dl = double.Parse(record.lcl ?? "0");
+                du = double.Parse(record.ucl ?? "0");
 
                 gChLcl[ix] = dl - dspan;
                 gChUcl[ix] = du - dspan;
@@ -621,20 +625,21 @@
                 double cpk2 = (du - record.average) / (3 * record.stddev);
                 record.cpk = Math.Min(cpk1, cpk2);
 
-                float fdl = (float) dl;
-                float fdu = (float) du;
+                float fdl = (float)dl;
+                float fdu = (float)du;
                 record.numGood = items.Where(x => x >= fdl && x <= fdu).Count();
 
-            } else
+            }
+            else
             {
-                gChLcl[ix]  = 0;
-                gChUcl[ix]  = 0;
+                gChLcl[ix] = 0;
+                gChUcl[ix] = 0;
                 gChLcl2[ix] = 0;
                 gChUcl2[ix] = 0;
                 gy3SigL[ix] = 0;
                 gy3SigH[ix] = 0;
-                gyAvg[ix]   = 0;
-                gyAvg2[ix]  = 0;
+                gyAvg[ix] = 0;
+                gyAvg2[ix] = 0;
             }
         }
 
@@ -652,7 +657,7 @@
             sumOfDerivation += (value) * (value);
         }
         double sumOfDerivationAverage = sumOfDerivation / floatList.Count;
-        return (float) Math.Sqrt(sumOfDerivationAverage - (average * average));
+        return (float)Math.Sqrt(sumOfDerivationAverage - (average * average));
     }
 
     //======================================================================

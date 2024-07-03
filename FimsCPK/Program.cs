@@ -1,4 +1,4 @@
-
+using FimsCPK.Entities;
 using FimsCPK.Models;
 using FimsCPK.Services;
 using Microsoft.AspNetCore.Components;
@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Telerik.SvgIcons;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +17,30 @@ builder.Services.AddServerSideBlazor();
 
 var cscpk = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FimsDbContext>(options => options.UseSqlServer(cscpk));
+builder.Services.AddDbContext<ApplicationDbContext>(
+    options => options.UseSqlServer(cscpk));
 
 //--- yscho add ----------------------
 builder.Services.AddTelerikBlazor();
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddScoped<CpkService>();
+
+//--- login
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
+builder.Services.AddHttpContextAccessor();  // for access user in razor
+builder.Services.AddIdentity<AspNetUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 5;
+    options.SignIn.RequireConfirmedEmail = false;
+}).AddRoles<IdentityRole>()
+  .AddEntityFrameworkStores<ApplicationDbContext>()
+  .AddDefaultTokenProviders();
 //------------------------------------
 
 var app = builder.Build();
@@ -34,10 +54,12 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
