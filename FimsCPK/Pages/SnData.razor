@@ -8,7 +8,7 @@
 @inject IJSRuntime JsRuntime
 
 <PageTitle>Fims Dashboard</PageTitle>
-<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 칠러 검사 데이타 </div>
+<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> @gSerialNumber 검사 결과 </div>
 <TelerikCard>
 
     <CardHeader>
@@ -16,7 +16,7 @@
         <label for="mySerialNum"> &nbsp;&nbsp;&nbsp;&nbsp;장비 S/N:</label>
         <TelerikTextBox Id="mySerialNum" @bind-Value="@gSerialNumber" Width="150px" />
         &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Serial" Icon="FontIcon.Search">테스트 결과 검색</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
+        <TelerikButton ThemeColor="success" OnClick="@Retrieve_TestData_For_Serial" Icon="FontIcon.Search">검사결과 보기</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
     </CardHeader>
 
     <CardBody>
@@ -105,6 +105,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Retrieve_TestData_For_Serial();
     }
 
     private void Retrieve_TestData_For_Serial()

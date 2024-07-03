@@ -36,7 +36,7 @@ namespace FimsCPK.Pages
         private string gStringModel = "";
         private string gStringInspector = "";
         private string gStringCloser = "";
-        private bool gSetDuration = false;
+        private bool gSetDuration = true;
         private int gCounter = 0;
         public DateTime gMinYear = new DateTime(2023, 1, 1, 0, 0, 0);
         public DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
@@ -55,7 +55,8 @@ namespace FimsCPK.Pages
         };
         protected override async Task OnInitializedAsync()
         {
-            gStartYear = gEndYear.AddMonths(-12);
+            gStartYear = gEndYear.AddMonths(-3);
+            SearchRecord();
         }
 
         private void OnStateInit(GridStateEventArgs<Tsheet> args)

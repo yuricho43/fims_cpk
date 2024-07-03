@@ -8,6 +8,7 @@
 
 @inject UserManager<AspNetUser> UserManager
 @inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavManager
 
 <TelerikRootComponent>
     <div class="header">
@@ -74,7 +75,7 @@
     {
         new DrawerItem { Text = "Home", Url = "/home", Icon =SvgIcon.Home },
         new DrawerItem { Separator = true },
-        new DrawerItem { Text = "CPK 검색", Url = "/cpk", Icon = SvgIcon.Search },
+        new DrawerItem { Text = "CPK 체크", Url = "/cpk", Icon = SvgIcon.Search },
         new DrawerItem { Text = "정규 분포", Url = "/cpknormal", Icon = SvgIcon.Graph },
         new DrawerItem { Text = "LCL/UCL관리", Url = "/cpksettings", Icon = SvgIcon.Sparkles },
         new DrawerItem { Separator = true },
@@ -100,6 +101,9 @@
         DrawerExpanded = true;
         string id = UserManager.GetUserName(HttpContextAccessor.HttpContext.User);
         gLoggedId = UserManager.Users.Where(t => t.UserName == id).Select(x => x.HangulName).FirstOrDefault();
+        if (gLoggedId == null)
+            NavManager.NavigateTo("/Identity/Account/login");
+
     }
 
     protected override async Task OnParametersSetAsync()
