@@ -235,9 +235,11 @@
                                                 <ChartValueAxisMajorGridLines Visible="true" />
                                                 <ChartValueAxisPlotBands>
                                                     <ChartValueAxisPlotBand From="@gyAvg[li]" To="@gyAvg2[li]" Color="green" Opacity="0.9"></ChartValueAxisPlotBand>
-                                                    <ChartValueAxisPlotBand From="@gy3SigL[li]" To="@gy3SigH[li]" Color="yellow" Opacity="0.1"></ChartValueAxisPlotBand>
-                                                    <ChartValueAxisPlotBand From="@gChLcl[li]" To="@gChLcl2[li]" Color="black" Opacity="0.9"></ChartValueAxisPlotBand>
-                                                    <ChartValueAxisPlotBand From="@gChUcl[li]" To="@gChUcl2[li]" Color="black" Opacity="0.9"></ChartValueAxisPlotBand>
+                                                    <ChartValueAxisPlotBand From="@gy3SigL[li]" To="@gy3SigH[li]" Color="yellow" Opacity="0.3"></ChartValueAxisPlotBand>
+                                                    <ChartValueAxisPlotBand From="@gChLcl[li]" To="@gChLcl2[li]" Color="cyan" Opacity="0.9"></ChartValueAxisPlotBand>
+                                                    <ChartValueAxisPlotBand From="@gChUcl[li]" To="@gChUcl2[li]" Color="cyan" Opacity="0.9"></ChartValueAxisPlotBand>
+                                                    <ChartValueAxisPlotBand From="@gChLsl[li]" To="@gChLsl2[li]" Color="red" Opacity="0.9"></ChartValueAxisPlotBand>
+                                                    <ChartValueAxisPlotBand From="@gChUsl[li]" To="@gChUsl2[li]" Color="red" Opacity="0.9"></ChartValueAxisPlotBand>
                                                 </ChartValueAxisPlotBands>
                                             </ChartValueAxis>
                                         </ChartValueAxes>
@@ -559,8 +561,9 @@
 
         string strLSL = "";
         string strUSL = "";
-        double dl, du;
+        double dl, du, dlc, duc;
         double dspan = 0;
+        double dspansl = 0;
         CPK_Statistics record = new CPK_Statistics();
 
         record.name = "Ch-" + ixCh.ToString();
@@ -572,15 +575,6 @@
             record.max = items.Max();
             record.stddev = getStandardDeviation(items);
             record.sum = items.Sum();
-
-            gyMin[ix] = Math.Round(record.average - 4 * record.stddev, 2);
-            gyMax[ix] = Math.Round(record.average + 4 * record.stddev, 2);
-            dspan = (gyMax[ix] - gyMin[ix]) / 500;  // 그래프 표시할 폭
-
-            gy3SigL[ix] = record.average - 3 * record.stddev;
-            gy3SigH[ix] = record.average + 3 * record.stddev;
-            gyAvg[ix] = record.average - dspan;
-            gyAvg2[ix] = record.average + dspan;
 
             //--- get lsl,usl, lcl, ucl
             cpkService.GetSL(gTargetModel, gTargetOnlyNumber, ixCh, ref strLSL, ref strUSL);
@@ -598,6 +592,20 @@
                 du = 0;
             }
 
+            //--- y축 min/max : 4std ==> lsl-10%, usl+10%
+            dspansl = du - dl;
+            //gyMin[ix] = Math.Round(record.average - 4 * record.stddev, 2);
+            //gyMax[ix] = Math.Round(record.average + 4 * record.stddev, 2);
+            gyMin[ix] = Math.Round(dl- dspansl*0.1, 2);
+            gyMax[ix] = Math.Round(du + dspansl*0.1, 2);
+            dspan = (gyMax[ix] - gyMin[ix]) / 200;  // 그래프 표시할 폭
+
+            gy3SigL[ix] = record.average - 3 * record.stddev;
+            gy3SigH[ix] = record.average + 3 * record.stddev;
+            gyAvg[ix] = record.average - dspan;
+            gyAvg2[ix] = record.average + dspan;
+
+
             gChLsl[ix] = dl - dspan;
             gChUsl[ix] = du - dspan;
             gChLsl2[ix] = dl + dspan;
@@ -609,13 +617,15 @@
 
             if (record.sum != 0)
             {
-                dl = double.Parse(record.lcl ?? "0");
-                du = double.Parse(record.ucl ?? "0");
-
-                gChLcl[ix] = dl - dspan;
-                gChUcl[ix] = du - dspan;
-                gChLcl2[ix] = dl + dspan;
-                gChUcl2[ix] = du + dspan;
+                // LCL/UCL을 사용하여 cpk 계산하려면 comment를 풀어야 한다.
+                
+                dlc = double.Parse(record.lcl ?? "0");
+                duc = double.Parse(record.ucl ?? "0");
+                
+                gChLcl[ix] = dlc - dspan;
+                gChUcl[ix] = duc - dspan;
+                gChLcl2[ix] = dlc + dspan;
+                gChUcl2[ix] = duc + dspan;
 
                 //--- cpk, cp 계산
                 //    Cp = (UCL-LCL)/(6*표준편차)
