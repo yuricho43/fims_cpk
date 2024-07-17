@@ -147,6 +147,10 @@ namespace FimsCPK.Services
         public List<CpkItem> GetCLValuesForModel(string strModel)
         {
             List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel).ToList();
+            foreach (var item in tCpkItemsCL)
+            {
+                item.Reserved1 = _dbFimsContext.Titems.Where(x => x.TestNo == item.TestNo).Select(p => p.Title).FirstOrDefault();
+            }
             return tCpkItemsCL;
         }
 
@@ -226,6 +230,11 @@ namespace FimsCPK.Services
 
             return gStrModels;
         }
+
+
+        //=================================================
+        // Utility Functions
+
 
     }
 }

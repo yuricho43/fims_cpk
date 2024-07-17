@@ -37,7 +37,8 @@
                 <GridCommandButton Command="Add" Icon="@SvgIcon.Plus">Add Cpk Item</GridCommandButton>
             </GridToolBarTemplate>
             <GridColumns>
-                <GridColumn Field=@nameof(CpkItem.TestNo) Title="TestNo" Editable="true" />
+                <GridColumn Field=@nameof(CpkItem.TestNo) Title="TestNo" Editable="false" />
+                <GridColumn Field=@nameof(CpkItem.Reserved1) Title="Name" Editable="false" />
                 <GridColumn Field=@nameof(CpkItem.Ch1Lcl) Title="Ch1LCL" />
                 <GridColumn Field=@nameof(CpkItem.Ch1Ucl) Title="Ch1UCL" />
                 <GridColumn Field=@nameof(CpkItem.Ch2Lcl) Title="Ch2LCL" />
@@ -76,13 +77,14 @@
 ********************************************************************************************************@
 
 @code {
+
     //--- Data For Combobox : Model
     private List<string> gModelNames = new List<string>();
     private string gTargetModel = "";               // bind value
     private string gLastSelectedModel = "";         // 같은 model 선택했을 때는 no action
 
     //--- For GridData
-    private List<CpkItem>   gCpkItemsCL { get; set; } = new List<CpkItem>();
+    private List<CpkItem> gCpkItemsCL { get; set; } = new List<CpkItem>();
     private List<TspecItem> gCpkItemsSL { get; set; } = new List<TspecItem>();
 
     //--- LCL/UCL을 일괄 설정하기 위한 변수들 (ActivateConfirm 함수 이용)
