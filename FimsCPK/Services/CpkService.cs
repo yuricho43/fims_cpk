@@ -216,8 +216,9 @@ namespace FimsCPK.Services
             }
         }
 
-        public List<string> GetCpkModelNames()
+        public List<string> GetCpkModelNames(int iLowLimit)
         {
+            gStrModels.Clear();
             //--- if already extract target models
             if (gStrModels.Count > 0)
                 return gStrModels;
@@ -234,11 +235,11 @@ namespace FimsCPK.Services
                                        group cpkModel by cpkModel.ProductModel into grp
                          select new ModelCount() { model = grp.Key, count = grp.Count() }).ToList();
 
-            models = models.OrderByDescending(n=>n.count).ToList();
+            //models = models.OrderByDescending(n=>n.count).ToList();
 
             foreach (var item in models)
             {
-                if (item.count >=30)
+                if (item.count >= iLowLimit)
                     gStrModels.Add(item.model.ToString());
             }
 

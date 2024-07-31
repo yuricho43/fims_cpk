@@ -107,7 +107,7 @@
     //--- 모델 Listup. 
     private void List_Models()
     {
-        gModelNames = cpkService.GetCpkModelNames();
+        gModelNames = cpkService.GetCpkModelNames(0);
         //--- 첫번째 모델, 첫번째 TestNo 설정
         if (gModelNames.Count != 0)
         {

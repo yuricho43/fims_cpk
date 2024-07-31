@@ -380,7 +380,7 @@
     //      Cpk관리할 Model 이름 List를 DB에서 읽어 온다.
     private void List_Models()
     {
-        gModelNames = cpkService.GetCpkModelNames();
+        gModelNames = cpkService.GetCpkModelNames(30);
         //--- 첫번째 모델, 첫번째 TestNo 설정
         if (gModelNames.Count != 0)
         {

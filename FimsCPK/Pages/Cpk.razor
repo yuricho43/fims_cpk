@@ -39,7 +39,7 @@
 
                 <label for="myTestNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
                 <TelerikComboBox @ref="@ComboBoxRef"
-                                 Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber"
+                                 Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber" OnChange="@Retrieve_TestData_For_Model"
                                  Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
                 </TelerikComboBox>
 
@@ -623,7 +623,7 @@
     //      Cpk관리할 Model 이름 List를 DB에서 읽어 온다.
     private void List_Models()
     {
-        gModelNames = cpkService.GetCpkModelNames();
+        gModelNames = cpkService.GetCpkModelNames(30);
         //--- 첫번째 모델, 첫번째 TestNo 설정
         if (gModelNames.Count != 0)
         {
@@ -665,6 +665,8 @@
         }
 
         ComboBoxRef?.Rebind();
+
+        Retrieve_TestData_For_Model();
     }
 
     // ======================================================================
