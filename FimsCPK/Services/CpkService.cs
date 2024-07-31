@@ -157,6 +157,13 @@ namespace FimsCPK.Services
 
         public List<CpkItem> GetCLValuesForModel(string strModel)
         {
+            //--- remove  (   ). ex CD222(NXP) ==> CD222
+            int ix = strModel.IndexOf("(");
+            if (ix > 0)
+            {
+                strModel = strModel.Substring(0, ix);
+            }
+             
             List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model.Contains(strModel) == true).ToList();
             foreach (var item in tCpkItemsCL)
             {
@@ -216,6 +223,7 @@ namespace FimsCPK.Services
             }
         }
 
+        //--- Get Model List for Tested Models
         public List<string> GetCpkModelNames(int iLowLimit)
         {
             gStrModels.Clear();
@@ -233,7 +241,7 @@ namespace FimsCPK.Services
             List<ModelCount> models = (from cpkModel in tCpkModelList
                                        orderby cpkModel.ProductModel
                                        group cpkModel by cpkModel.ProductModel into grp
-                         select new ModelCount() { model = grp.Key, count = grp.Count() }).ToList();
+                                       select new ModelCount() { model = grp.Key, count = grp.Count() }).ToList();
 
             //models = models.OrderByDescending(n=>n.count).ToList();
 
@@ -244,6 +252,32 @@ namespace FimsCPK.Services
             }
 
             return gStrModels;
+        }
+
+        //--- Get Model List for Tested Models
+        public List<string> GetCpkModelNamesForSetting()
+        {
+            List<string> strModels = new List<string>();
+            List<CpkItem> tCpkModelList;
+
+            using (var db = new FimsDbContext())
+            {
+                tCpkModelList = db.CpkItems.ToList();
+            }
+
+            List<ModelCount> models = (from cpkModel in tCpkModelList
+                                       orderby cpkModel.Model
+                                       group cpkModel by cpkModel.Model into grp
+                                       select new ModelCount() { model = grp.Key, count = grp.Count() }).ToList();
+
+            //models = models.OrderByDescending(n=>n.count).ToList();
+
+            foreach (var item in models)
+            {
+                strModels.Add(item.model.ToString());
+            }
+
+            return strModels;
         }
 
 
