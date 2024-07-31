@@ -50,16 +50,33 @@
                     </Content>
                 </TileLayoutItem>
 
-                <TileLayoutItem HeaderText="모델별 통계" RowSpan="2" ColSpan="4">
+                <TileLayoutItem HeaderText="변경내용: v0.9.1/0.9.2" RowSpan="2" ColSpan="4">
                     <Content>
-                        <TelerikChart Height="90%">
+                        <h4>1) Cp/Cpk 값은 LSL/USL을 기준으로 계산</h4>
+                        <h4>2) 정규분포는 "Cpk체크-Cpk통계"에서 해당 채널을 더블클릭하면 popup으로 표시됨</h4>
+                        <h4>3) 정규분포/XR그래프/일반그래프에 SL, CL, 3Sigma, 평균값 표시</h4>
+                        <h4>4) Cpk 값은 Good/NoGood을 색상으로 표시 (1.33기준)</h4>
+                        <h4>5) Cpk List 엑셀로 출력 가능</h4>
+                        <h4>6) LCL/UCL관리에서 TestNo에 대한 검사항목명 추가</h4>
+                        <h4> (<a href="#"></a></h4>
+                        <h4>7) Model 추가</h4>
+                        <h4>8) 30개 이상 검사한 항목만 Cpk 계산 가능 </h4>
+                        <h4>9) 7월30일자 SpecSheet 적용</h4>
+                    </Content>
+                </TileLayoutItem>
+ 
+                <TileLayoutItem HeaderText="모델별 통계 (검사수량 10개 이상)" RowSpan="2" ColSpan="6">
+                    <Content>
+                        <TelerikChart Height="85%">
                             <ChartTooltip Visible="true" Shared="true"></ChartTooltip>
                             <ChartLegend Visible="true"></ChartLegend>
                             <ChartSeriesItems>
                                 <ChartSeries Type="ChartSeriesType.Column"
                                              Name="검사 수량"
-                                             Data="@gListModels"
+                                             Data="@gListModels30"
+                                             CategoryField="model"
                                              Field="count">
+                                    <ChartSeriesLabels Template="[#=value#]" Visible="true"></ChartSeriesLabels>
                                 </ChartSeries>
                             </ChartSeriesItems>
 
@@ -68,32 +85,28 @@
                                     <ChartValueAxisTitle Text="검사 모델수" />
                                     <ChartValueAxisMajorGridLines Visible="true" />
                                     <ChartValueAxisPlotBands>
-                                        <ChartValueAxisPlotBand From="100" To="200" Color="#00cc00" Opacity="0.3"></ChartValueAxisPlotBand>
+                                        <ChartValueAxisPlotBand From="29" To="35" Color="#00cc00" Opacity="0.3"></ChartValueAxisPlotBand>
                                     </ChartValueAxisPlotBands>
                                 </ChartValueAxis>
                             </ChartValueAxes>
 
                             <ChartCategoryAxes>
-                                <ChartCategoryAxis Categories="@Categories" Visible="false">
+                                <ChartCategoryAxis Categories="@Categories" Visible="true">
+                                    @*
                                     <ChartCategoryAxisPlotBands>
-                                        <ChartCategoryAxisPlotBand From="10" To="50" Color="#440099" Opacity="0.3"></ChartCategoryAxisPlotBand>
+                                        <ChartCategoryAxisPlotBand From="30" To="31" Color="#440099" Opacity="0.0"></ChartCategoryAxisPlotBand>
                                     </ChartCategoryAxisPlotBands>
+                                    *@
+                                    <ChartCategoryAxisLabels Step="1">
+                                        <ChartCategoryAxisLabelsRotation Angle="-30"></ChartCategoryAxisLabelsRotation>
+                                        <ChartCategoryAxisLabelsBorder Width="1" Color="#FFFFFF" DashType="DashType.Solid"></ChartCategoryAxisLabelsBorder>
+                                    </ChartCategoryAxisLabels>
                                 </ChartCategoryAxis>
                             </ChartCategoryAxes>
                         </TelerikChart>
                     </Content>
                 </TileLayoutItem>
 
-                <TileLayoutItem HeaderText="변경내용: v0.9.1" RowSpan="2" ColSpan="6">
-                    <Content>
-                        <h4>1) Cp/Cpk 값은 LSL/USL을 기준으로 계산</h4>
-                        <h4>2) 정규분포는 "Cpk체크-Cpk통계"에서 해당 채널을 더블클릭하면 popup으로 표시됨</h4>
-                        <h4>3) 정규분포/XR그래프/일반그래프에 SL, CL, 3Sigma, 평균값 표시</h4>
-                        <h4>4) Cpk 값은 Good/NoGood을 색상으로 표시 (1.33기준)</h4>
-                        <h4>5) Cpk List 엑셀로 출력 가능</h4>
-                        <h4>6) LCL/UCL관리에서 TestNo에 대한 검사항목명 추가</h4>
-                    </Content>
-                </TileLayoutItem>
 
             </TileLayoutItems>
         </TelerikTileLayout>
@@ -111,6 +124,7 @@
         public int count { get; set; }
     }
     List<ModelCount> gListModels;
+    List<ModelCount> gListModels30;
     public int gTotalNumModel = 0;
     public int gTotalNumInspection = 0;
     public string[] Categories = { "1", "2" };
@@ -133,6 +147,8 @@
             gListModels = models.ToList();
             gListModels = gListModels.OrderByDescending(n => n.count).ToList();
         }
+        gListModels30 = gListModels.Where(n => n.count >= 10).ToList();
+
         gTotalNumModel = gListModels.Count;
         Categories = new string[gTotalNumModel];
         int i = 0;

@@ -59,6 +59,7 @@
                      OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
             <GridColumns>
                 <GridColumn Field=@nameof(TspecItem.TestNo) Title="TestNo" Editable="true" />
+                <GridColumn Field=@nameof(TspecItem.Ch4Ucl) Title="Name" Editable="true" />
                 <GridColumn Field=@nameof(TspecItem.Ch1Lcl) Title="Ch1LSL" />
                 <GridColumn Field=@nameof(TspecItem.Ch1Ucl) Title="Ch1USL" />
                 <GridColumn Field=@nameof(TspecItem.Ch2Lcl) Title="Ch2LSL" />
@@ -143,7 +144,7 @@
 
         List<CpkItem> tCpkModelList;
 
-        using (var db = new FimsDbContext())
+        //using (var db = new FimsDbContext())
         {
             // gCpkItemsCL = db.CpkItems.Where(x => x.Model == strModel).ToList();
             gCpkItemsCL = cpkService.GetCLValuesForModel(strModel);

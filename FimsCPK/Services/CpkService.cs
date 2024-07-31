@@ -1,6 +1,7 @@
 ﻿using FimsCPK.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using static FimsCPK.Pages.Home;
 using static Telerik.Blazor.ThemeConstants;
 
 namespace FimsCPK.Services
@@ -9,6 +10,12 @@ namespace FimsCPK.Services
     {
         private readonly FimsDbContext _dbFimsContext;
         static List<string> gStrModels = new List<string>();
+
+        public class ModelCount
+        {
+            public string model { get; set; }
+            public int count { get; set; }
+        }
 
         /// <summary>
         /// Reserve DbContext
@@ -132,8 +139,12 @@ namespace FimsCPK.Services
 
         public List<TspecItem> GetSLValuesForModelAndTestNo(string strModel, List<int> listTestNo)
         {
-            int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
+            int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel.Contains(strModel)==true).Select(p => p.Id).FirstOrDefault();
             List<TspecItem> tCpkItemsSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && listTestNo.Contains(x.TestNo)).ToList();
+            foreach (var item in tCpkItemsSL)
+            {
+                item.Ch4Ucl = _dbFimsContext.TspecItems.Where(x => x.TestNo == item.TestNo).Select(p => p.Title).FirstOrDefault();
+            }
             return tCpkItemsSL;
         }
 
@@ -146,10 +157,10 @@ namespace FimsCPK.Services
 
         public List<CpkItem> GetCLValuesForModel(string strModel)
         {
-            List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel).ToList();
+            List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model.Contains(strModel) == true).ToList();
             foreach (var item in tCpkItemsCL)
             {
-                item.Reserved1 = _dbFimsContext.Titems.Where(x => x.TestNo == item.TestNo).Select(p => p.Title).FirstOrDefault();
+                item.Reserved1 = _dbFimsContext.TspecItems.Where(x => x.TestNo == item.TestNo).Select(p => p.Title).FirstOrDefault();
             }
             return tCpkItemsCL;
         }
@@ -211,21 +222,24 @@ namespace FimsCPK.Services
             if (gStrModels.Count > 0)
                 return gStrModels;
 
-            List<CpkItem> tCpkModelList;
+            List<Tsheet> tCpkModelList;
 
             using (var db = new FimsDbContext())
             {
-                tCpkModelList = db.CpkItems.ToList();
+                tCpkModelList = db.Tsheets.ToList();
             }
 
-            var models = from cpkModel in tCpkModelList
-                         orderby cpkModel.Model
-                         group cpkModel by cpkModel.Model into grp
-                         select grp.Key;
+            List<ModelCount> models = (from cpkModel in tCpkModelList
+                                       orderby cpkModel.ProductModel
+                                       group cpkModel by cpkModel.ProductModel into grp
+                         select new ModelCount() { model = grp.Key, count = grp.Count() }).ToList();
+
+            models = models.OrderByDescending(n=>n.count).ToList();
 
             foreach (var item in models)
             {
-                gStrModels.Add(item.ToString());
+                if (item.count >=30)
+                    gStrModels.Add(item.model.ToString());
             }
 
             return gStrModels;
