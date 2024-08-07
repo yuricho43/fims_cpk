@@ -623,7 +623,7 @@
     //      Cpk관리할 Model 이름 List를 DB에서 읽어 온다.
     private void List_Models()
     {
-        gModelNames = cpkService.GetCpkModelNames(30);
+        gModelNames = cpkService.GetCpkModelNames(10);
         //--- 첫번째 모델, 첫번째 TestNo 설정
         if (gModelNames.Count != 0)
         {
@@ -653,9 +653,11 @@
         gTestNumbers.Clear();
         using (var db = new FimsDbContext())
         {
-            var lists = db.CpkItems.Where(n => n.Model == gLastSelectedModel).Select(p => p.TestNo).ToList();
+            var lists = db.CpkItems.Where(n => gLastSelectedModel.Contains(n.Model) == true).Select(p => p.TestNo).ToList();
 
             List<int> temp = lists.ToList();
+            if (temp.Count() <= 0)
+                return;
             foreach (var tno in temp)
             {
                 gTestNumbers.Add("(" + tno + "):" + db.TspecItems.Where(x => x.TestNo == tno).Select(p => p.Title).FirstOrDefault());
@@ -817,7 +819,7 @@
 
         record.name = "Ch-" + ixCh.ToString();
         record.num = items.Count();
-        if (record.num >= 30)
+        if (record.num >= 10)
         {
             record.average = items.Average();
             record.min = items.Min();
@@ -944,16 +946,37 @@
     {
         var stats = args.Item as CPK_Statistics;
 
+        if (double.IsNaN(stats.cpk) == true)
+        {
+            Alert("Cpk 계산이 불가합니다.");
+            return;
+        }
 
         //--- Get parameters for 정규분포
         giSelectedCh = int.Parse(stats.name.Substring(3, 1));
         gChAvg = Math.Round(stats.average, 3);
         gChStdDev = Math.Round(stats.stddev, 3);
         double dlcl, ducl, dlsl, dusl;
-        dlcl = double.Parse(stats.lcl);
-        ducl = double.Parse(stats.ucl);
-        dlsl = double.Parse(stats.lsl);
-        dusl = double.Parse(stats.usl);
+
+        if (stats.lsl != null)
+        {
+            dlsl = double.Parse(stats.lsl);
+            dusl = double.Parse(stats.usl);
+        } else
+        {
+            dlsl = gChAvg - gChStdDev * 5;
+            dusl = gChAvg + gChStdDev * 5;
+        }
+
+        if (stats.lcl != null) {
+            dlcl = double.Parse(stats.lcl);
+            ducl = double.Parse(stats.ucl);
+        } else
+        {
+            dlcl = dlsl;
+            ducl = dusl;
+        }
+
 
         Calculate_Normal_Distribution(gChAvg, gChStdDev, giSelectedCh, dlcl, ducl, dlsl, dusl);
 
