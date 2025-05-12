@@ -14,7 +14,7 @@
     <CardHeader>
         &nbsp;&nbsp;&nbsp
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
-        <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gStringModel"
+        <TelerikComboBox Data="@gModelNames" Width="250px" @bind-Value="@gStringModel"
                          Placeholder="Select an item..." ClearButton="true" Filterable="true" TextField="MyTextField" ValueField="MyValueField" AllowCustom="true">
         </TelerikComboBox>
         &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -98,8 +98,8 @@
     {
         gNumChannel = 4;
         List_Models();
-        gStringModel = gModelNames.Count > 0 ? gModelNames[0] : "";
-        Retrieve_Model_Specs();
+        //gStringModel = gModelNames.Count > 0 ? gModelNames[0] : "";
+        //Retrieve_Model_Specs();
     }
 
     private void Retrieve_Model_Specs()
@@ -111,7 +111,8 @@
     {
         int iSheetId = -1;
         //--- if alread models are listed-up, skip
-        if (strModel == null || strModel.Length < 2)
+        if (string.IsNullOrWhiteSpace(strModel))
+        //if (strModel == null || strModel.Length < 2)
             return;
 
         gNumChannel = 4;

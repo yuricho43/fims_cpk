@@ -21,7 +21,7 @@
     <CardHeader>
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
         <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
-                         Placeholder="Select Model..." ClearButton="true" Filterable="true">
+        Placeholder="Select Model..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
     </CardHeader>
 
@@ -32,9 +32,12 @@
     <CardBody>
         <h4 style="color:blue"><strong>LCL/UCL-@gTargetModel</strong></h4>
         <TelerikGrid Data=@gCpkItemsCL EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
-                     OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
+        OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
             <GridToolBarTemplate>
-                <GridCommandButton Command="Add" Icon="@SvgIcon.Plus">Add Cpk Item</GridCommandButton>
+                @if (gLastSelectedModel.Length > 0)
+                {
+                    <GridCommandButton Command="Add" Icon="@SvgIcon.Plus">Add Cpk Item</GridCommandButton>
+                }
             </GridToolBarTemplate>
             <GridColumns>
                 <GridColumn Field=@nameof(CpkItem.TestNo) Title="TestNo" Editable="false" />
@@ -111,7 +114,7 @@
         //--- 첫번째 모델, 첫번째 TestNo 설정
         if (gModelNames.Count != 0)
         {
-            gTargetModel = gModelNames[0];
+            //gTargetModel = gModelNames[0];
             gLastSelectedModel = gTargetModel;
             Get_Cpk_Items_For_Model(gTargetModel);
         }

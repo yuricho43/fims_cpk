@@ -25,22 +25,22 @@
                 <label for="myIncludeDate" ThemeColor="success" style="color:red ">&nbsp;&nbsp;&nbsp;기간지정</label>
                 <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
                 <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
-                                   BottomView="@CalendarView.Month"
-                                   Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
+                BottomView="@CalendarView.Month"
+                Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
                 ~
                 <TelerikDatePicker @bind-Value="@gEndYear"
-                                   BottomView="@CalendarView.Month"
-                                   Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
+                BottomView="@CalendarView.Month"
+                Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
 
                 <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
                 <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
-                                 Placeholder="Select Model..." ClearButton="true" Filterable="true">
+                Placeholder="Select Model..." ClearButton="true" Filterable="true">
                 </TelerikComboBox>
 
                 <label for="myTestNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
                 <TelerikComboBox @ref="@ComboBoxRef"
-                                 Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber" OnChange="@Retrieve_TestData_For_Model"
-                                 Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
+                Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber" OnChange="@Retrieve_TestData_For_Model"
+                Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
                 </TelerikComboBox>
 
                 &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -57,10 +57,10 @@
 
             <CardBody>
                 <TelerikTileLayout Columns="6"
-                                   ColumnWidth="18%"
-                                   RowHeight="210px"
-                                   Reorderable="true"
-                                   Resizable="true">
+                ColumnWidth="18%"
+                RowHeight="210px"
+                Reorderable="true"
+                Resizable="true">
                     <TileLayoutItems>
                         <TileLayoutItem HeaderText="@gTargetModel" RowSpan="4" ColSpan="2">
                             <HeaderTemplate>
@@ -68,18 +68,18 @@
                             </HeaderTemplate>
                             <Content>
                                 <TelerikGrid Class="cpk-grid"
-                                             Data="@gListCtq"
-                                             ConfirmDelete="true"
-                                             Pageable="true"
-                                             Groupable="false"
-                                             Sortable="false"
-                                             FilterMode="GridFilterMode.FilterMenu"
-                                             Resizable="true"
-                                             Reorderable="true"
-                                             EditMode="GridEditMode.Popup"
-                                             PageSize=@gPageSize
-                                             Navigable="true"
-                                             Height="100%">
+                                Data="@gListCtq"
+                                ConfirmDelete="true"
+                                Pageable="true"
+                                Groupable="false"
+                                Sortable="false"
+                                FilterMode="GridFilterMode.FilterMenu"
+                                Resizable="true"
+                                Reorderable="true"
+                                EditMode="GridEditMode.Popup"
+                                PageSize=@gPageSize
+                                Navigable="true"
+                                Height="100%">
 
                                     <GridToolBarTemplate>
                                         <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">엑셀 출력</GridCommandButton>
@@ -87,8 +87,8 @@
 
                                     <GridSettings>
                                         <GridPagerSettings InputType="PagerInputType.Buttons"
-                                                           ButtonCount="20"
-                                                           Position="PagerPosition.Top">
+                                        ButtonCount="20"
+                                        Position="PagerPosition.Top">
                                         </GridPagerSettings>
                                     </GridSettings>
 
@@ -103,17 +103,10 @@
                                         <GridColumn Field=@nameof(CPK_Items.value2) Width="30px" Title="CH2값" Sortable=true />
                                         <GridColumn Field=@nameof(CPK_Items.value3) Width="30px" Title="CH3값" Sortable=true />
 
-                                        @*
-                                        <GridColumn Field=@nameof(Tsheet.ProductSerial) Width="30px" Title="SN" Sortable=true />
-                                        <GridColumn Field=@nameof(Tsheet.InspectionEndDateTime) Width="40px" Title="검사날짜" Sortable=true />
-                                        <GridColumn Field=@nameof(Tsheet.InspectorName) Width="30px" Title="값" Sortable=true />
-                                        *@
                                     </GridColumns>
-
                                 </TelerikGrid>
                             </Content>
                         </TileLayoutItem>
-
                         <TileLayoutItem HeaderText="CPK 통계" RowSpan="1" ColSpan="4">
                             <HeaderTemplate>
                                 <h4 style="color:red"><strong>CPK 통계:@gTargetModel&nbsp-@gTargetNumber</strong></h4>
@@ -161,7 +154,6 @@
                             </HeaderTemplate>
                             <Content>
 
-                                @************************************************************************@
                                 @for (int i = 0; i < 3; i++)
                                 {
                                     var li = i;
@@ -261,8 +253,6 @@
                                         </ChartCategoryAxes>
                                     </TelerikChart>
                                 }
-                                @************************************************************************@
-
                             </Content>
                         </TileLayoutItem>
                     </TileLayoutItems>
@@ -272,15 +262,15 @@
 
         @******************* 정규분포/XR 윈도우 Popup ********************@
         <TelerikWindow Visible="@IsWindowVisible"
-                       VisibleChanged="@XRWindowShowChangedHandler"
-                       Resizable="false"
-                       Modal="true"
-                       MinHeight="200px"
-                       Height="800px"
-                       MaxHeight="1024px"
-                       MinWidth="400px"
-                       Width="1600px"
-                       MaxWidth="1920px">
+        VisibleChanged="@XRWindowShowChangedHandler"
+        Resizable="false"
+        Modal="true"
+        MinHeight="200px"
+        Height="800px"
+        MaxHeight="1024px"
+        MinWidth="400px"
+        Width="1600px"
+        MaxWidth="1920px">
             <WindowTitle>
                 @XRWindowTitle
             </WindowTitle>
@@ -289,10 +279,10 @@
             </WindowActions>
             <WindowContent>
                 <TelerikTileLayout Columns="6"
-                                   ColumnWidth="18%"
-                                   RowHeight="200px"
-                                   Reorderable="true"
-                                   Resizable="true">
+                ColumnWidth="18%"
+                RowHeight="200px"
+                Reorderable="true"
+                Resizable="true">
                     <TileLayoutItems>
 
                         <TileLayoutItem HeaderText="정규분포" RowSpan="3" ColSpan="3">
@@ -305,10 +295,10 @@
                                     <ChartLegend Visible="false"></ChartLegend>
                                     <ChartSeriesItems>
                                         <ChartSeries Type="ChartSeriesType.Line"
-                                                     Name="Value1"
-                                                     Data="@gNormalValue"
-                                                     Color="blue"
-                                                     Field="@nameof(CPK_NormalDist.value1)" CategoryField="@nameof(CPK_NormalDist.value2)">
+                                        Name="Value1"
+                                        Data="@gNormalValue"
+                                        Color="blue"
+                                        Field="@nameof(CPK_NormalDist.value1)" CategoryField="@nameof(CPK_NormalDist.value2)">
                                             @*
                                             <ChartSeriesLabels Template="#=value#" Visible="true" Color="blue" Background="#FF000000"></ChartSeriesLabels>
                                             *@
@@ -355,10 +345,10 @@
                                             @if (@giSelectedCh == 1)
                                             {
                                                 <ChartSeries Type="ChartSeriesType.Line"
-                                                             Name="CTQ-측정값"
-                                                             Data="@gListCtq"
-                                                             Color="blue"
-                                                             Field="@strField">
+                                                Name="CTQ-측정값"
+                                                Data="@gListCtq"
+                                                Color="blue"
+                                                Field="@strField">
                                                     <ChartSeriesMarkers Size="3" />
                                                     <ChartSeriesTooltip Visible="true">
                                                         <Template Context="ctx">
@@ -375,10 +365,10 @@
                                             {
                                                 strField = "value2";
                                                 <ChartSeries Type="ChartSeriesType.Line"
-                                                             Name="CTQ-측정값"
-                                                             Data="@gListCtq"
-                                                             Color="blue"
-                                                             Field="@strField">
+                                                Name="CTQ-측정값"
+                                                Data="@gListCtq"
+                                                Color="blue"
+                                                Field="@strField">
                                                     <ChartSeriesMarkers Size="3" />
                                                     <ChartSeriesTooltip Visible="true">
                                                         <Template Context="ctx">
@@ -395,10 +385,10 @@
                                             {
                                                 strField = "value3";
                                                 <ChartSeries Type="ChartSeriesType.Line"
-                                                             Name="CTQ-측정값"
-                                                             Data="@gListCtq"
-                                                             Color="blue"
-                                                             Field="@strField">
+                                                Name="CTQ-측정값"
+                                                Data="@gListCtq"
+                                                Color="blue"
+                                                Field="@strField">
                                                     <ChartSeriesMarkers Size="3" />
                                                     <ChartSeriesTooltip Visible="true">
                                                         <Template Context="ctx">
@@ -501,7 +491,7 @@
     private List<string> gTestNumbers { get; set; } = new List<string>();
 
     //--- For GridData/ChartData
-    public List<CPK_Items> gListCtq { get; set; }
+    public List<CPK_Items> gListCtq { get; set; } = new List<CPK_Items>();
     public List<CPK_Items> gListCtqBlank { get; set; } = new List<CPK_Items>();
 
     //--- For GridData
@@ -531,7 +521,7 @@
 
     //--- For Excel Export
     bool ExportAllPages { get; set; }
-    string gStrFilename { get; set; }   // exported excel filename : CtqList_ModelName_TestNumber_yyyy-mm-dd_HH.mm.ss.xlsx
+    string gStrFilename { get; set; } = "CtqList";   // exported excel filename : CtqList_ModelName_TestNumber_yyyy-mm-dd_HH.mm.ss.xlsx
     string gStrCpkFilename { get; set; } = "cpk통계";
     //--- For Loop in Charts
     public string[] gXAxisLabels = new string[100];
@@ -615,6 +605,10 @@
         gCpkStats = new List<CPK_Statistics>();
         List_Models();
 
+        if (string.IsNullOrWhiteSpace(gTargetModel) ||
+            string.IsNullOrWhiteSpace(gTargetNumber) )
+            return;
+
         Retrieve_TestData_For_Model();
 
     }
@@ -624,10 +618,12 @@
     private void List_Models()
     {
         gModelNames = cpkService.GetCpkModelNames(10);
+
         //--- 첫번째 모델, 첫번째 TestNo 설정
         if (gModelNames.Count != 0)
         {
-            gTargetModel = gModelNames[0];
+            // Get Saved Data : Duration, 모델, 테스트번호
+            //gTargetModel = gModelNames[0];
             Refresh_TestNo_For_Model(gTargetModel);
         }
     }
@@ -644,6 +640,9 @@
     //      모델이 변경되면, 해당 모델의 TestNo List를 새로 가져온다.
     private void Refresh_TestNo_For_Model(string selectedModel)
     {
+        if (string.IsNullOrWhiteSpace(selectedModel))
+            return;
+
         if (selectedModel == gLastSelectedModel)
             return;
 

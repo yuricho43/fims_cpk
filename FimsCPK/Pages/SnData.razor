@@ -22,15 +22,15 @@
     <CardBody>
 
         <TelerikGrid Class="item-grid-info"
-                     Data="@gSheetList"
-                     ConfirmDelete="true"
-                     Pageable="false"
-                     Groupable="false"
-                     FilterMode="GridFilterMode.None"
-                     Sortable="false"
-                     Reorderable="true"
-                     PageSize=@gPageSize
-                     Height="100%">
+        Data="@gSheetList"
+        ConfirmDelete="true"
+        Pageable="false"
+        Groupable="false"
+        FilterMode="GridFilterMode.None"
+        Sortable="false"
+        Reorderable="true"
+        PageSize=@gPageSize
+        Height="100%">
             <GridColumns>
                 <GridColumn Field=@nameof(Tsheet.Id) Width="30px" Title="Id" Sortable=true />
                 <GridColumn Field=@nameof(Tsheet.ProductModel) Width="60px" Title="모델" Sortable=true />
@@ -47,18 +47,18 @@
         </TelerikGrid>
 
         <TelerikGrid Class="item-grid"
-                     Data="@gItemList"
-                     ConfirmDelete="true"
-                     Pageable="false"
-                     Groupable="false"
-                     Sortable="false"
-                     FilterMode="GridFilterMode.FilterMenu"
-                     Resizable="true"
-                     Reorderable="true"
-                     EditMode="GridEditMode.Popup"
-                     PageSize=@gPageSize
-                     Navigable="true"
-                     Height="100%">
+        Data="@gItemList"
+        ConfirmDelete="true"
+        Pageable="false"
+        Groupable="false"
+        Sortable="false"
+        FilterMode="GridFilterMode.FilterMenu"
+        Resizable="true"
+        Reorderable="true"
+        EditMode="GridEditMode.Popup"
+        PageSize=@gPageSize
+        Navigable="true"
+        Height="100%">
 
             <GridToolBarTemplate>
                 <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">Export to Excel</GridCommandButton>
@@ -66,8 +66,8 @@
 
             <GridSettings>
                 <GridPagerSettings InputType="PagerInputType.Buttons"
-                                   ButtonCount="20"
-                                   Position="PagerPosition.Top">
+                ButtonCount="20"
+                Position="PagerPosition.Top">
                 </GridPagerSettings>
             </GridSettings>
 
@@ -99,7 +99,7 @@
     public List<Tsheet> gSheetList { get; set; }
     public List<Titem> gItemList { get; set; }
 
-    private string gSerialNumber = "B1L00198";
+    private string gSerialNumber = "";
     private int gCounter = 0;
 
     public int gPageSize = 100;
@@ -117,9 +117,11 @@
 
     private void Get_Equipment_Info(string strSN)
     {
+        gItemList = new List<Titem>();
+
         int iSheetId = -1;
         //--- if alread models are listed-up, skip
-        if (strSN == null || strSN.Length < 5)
+        if (string.IsNullOrWhiteSpace(strSN))
             return;
 
         using (var db = new FimsDbContext())
