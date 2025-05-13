@@ -1,0 +1,167 @@
+﻿@page "/addcpkitem"
+@using FimsCPK.Data
+@using FimsCPK.Services
+@using Microsoft.AspNetCore.Identity
+@using Telerik.Blazor
+@using Telerik.Blazor.Components
+@using Telerik.DataSource
+@using static Telerik.Blazor.ThemeConstants
+
+@inject CpkService cpkService
+@inject NavigationManager NavigationManager
+
+@*****************************************************************
+
+    (Dialog로 구현 : )
+    Model       : Model이름
+    AllModel    : checkbox
+    TestNo      : TestNo
+    (Name)      : 자동표시
+    LCL1        : textbox
+    UCL1        : testbox
+    LCL2        : textbox
+    UCL2        : testbox
+    LCL3        : textbox
+    UCL3        : testbox
+
+    Register    : 등록
+    Cancel      : 취소
+ *****************************************************************@
+
+<TelerikDialog Visible="true" Title="CpkItem추가" Width="700px" Class="dialog-background" ShowCloseButton="false">
+    <DialogContent>
+
+        <TelerikForm Model="@gNewCpkModel"
+                     @ref="@AddUserFormRef"
+                     OnValidSubmit="@HandleValidSubmit"
+                     OnInvalidSubmit="@HandleInvalidSubmit"
+                     Orientation="FormOrientation.Horizontal">
+            <FormValidation>
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+            </FormValidation>
+
+            <FormItems>
+                <FormItem LabelText="Model Name:" Field="@nameof(NewCpkRegisterRequestModel.ModelName)">
+                    <Template>
+                        <label for="firsttime" class="k-label k-form-label">Model Name:</label>
+                        <TelerikDropDownList @bind-Value="@gModelName"
+                                             DefaultText="Select Model..."
+                                             Filterable="true"
+                                             FilterOperator="@StringFilterOperator.Contains"
+                                             Data="@gListModels"
+                                             Width="250px"
+                                             Size="sm"
+                                             Id="firsttime">
+                            <DropDownListSettings>
+                                <DropDownListPopupSettings Height="400px" />
+                            </DropDownListSettings>
+                        </TelerikDropDownList>
+                    </Template>
+                </FormItem>
+
+                <FormItem LabelText="전체모델에 적용:" Field="@nameof(NewCpkRegisterRequestModel.bForAllModel)" />
+                <FormItem LabelText="TestNo*:" Field="@nameof(NewCpkRegisterRequestModel.iTestNo)" />
+                <FormItem LabelText="LCL1" Field="@nameof(NewCpkRegisterRequestModel.LCL1)" />
+                <FormItem LabelText="UCL1" Field="@nameof(NewCpkRegisterRequestModel.UCL1)" />
+                <FormItem LabelText="LCL2" Field="@nameof(NewCpkRegisterRequestModel.LCL2)" />
+                <FormItem LabelText="UCL2" Field="@nameof(NewCpkRegisterRequestModel.UCL2)" />
+                <FormItem LabelText="LCL3" Field="@nameof(NewCpkRegisterRequestModel.LCL3)" />
+                <FormItem LabelText="UCL3" Field="@nameof(NewCpkRegisterRequestModel.UCL3)" />
+                <FormItem LabelText="LCL4" Field="@nameof(NewCpkRegisterRequestModel.LCL4)" />
+                <FormItem LabelText="UCL4" Field="@nameof(NewCpkRegisterRequestModel.UCL4)" />
+            </FormItems>
+
+            <FormButtons>
+                <TelerikButton ButtonType="ButtonType.Submit" ThemeColor="@(ThemeConstants.Button.ThemeColor.Primary)">등록</TelerikButton>
+                <TelerikButton ButtonType="ButtonType.Button" OnClick="@OnAddCpkItemDialogCancel">끝내기</TelerikButton>
+            </FormButtons>
+
+        </TelerikForm>
+
+    </DialogContent>
+
+</TelerikDialog>
+
+<div class="notification-parent">
+    <TelerikNotification @ref="AddUserNotificationComponent"
+                         Class="MyTelerikNotification"
+                         VerticalPosition="@NotificationVerticalPosition.Top"
+                         HorizontalPosition="@NotificationHorizontalPosition.Center">
+    </TelerikNotification>
+</div>
+
+@code {
+    public NewCpkRegisterRequestModel gNewCpkModel { get; set; } = new NewCpkRegisterRequestModel();
+    private List<string> Roles { get; set; } = new List<string> { "Reporter", "General", "Manager", "Admin" };
+    public TelerikForm AddUserFormRef { get; set; }
+    public TelerikNotification AddUserNotificationComponent { get; set; }
+    public bool ValidSubmit { get; set; } = false;
+    public bool ShowErrors { get; set; }
+
+    [Parameter]
+    public EventCallback<NewCpkRegisterRequestModel> AddCpkItemFinished { get; set; }
+    [Parameter]
+    public List<string> gListModels { get; set; }
+    [Parameter]
+    public string gModelName { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        int i = gListModels.Count();
+    }
+
+    async void HandleValidSubmit()
+    {
+        ValidSubmit = true;
+        var result = await cpkService.AddCpkItemAsync(gNewCpkModel);
+
+        if (result >= 0)
+        {
+            await ActivateAlert("CpkItem추가 성공", gNewCpkModel.ModelName + ", TestNo=" + gNewCpkModel.iTestNo.ToString());
+            this.ShowErrors = false;
+
+            AddUserNotificationComponent.Show(new NotificationModel
+                {
+                    Text = "CpkItem 등록 성공",
+                    ThemeColor = "error",
+                    CloseAfter = 3000
+                });
+
+            await AddCpkItemFinished.InvokeAsync(gNewCpkModel); // pass Param to parent, by calling EventCallback
+        }
+        else
+        {
+            string reason = "";
+            reason = "unknown";
+            ShowErrors = true;
+            await ActivateAlert("cpkItem 등록 실패", reason);
+        }
+
+        ValidSubmit = false;
+
+        StateHasChanged();
+    }
+
+    void HandleInvalidSubmit()
+    {
+        ValidSubmit = false;
+    }
+
+    void OnAddCpkItemDialogCancel()
+    {
+        //ValidSubmit = false;
+        AddCpkItemFinished.InvokeAsync(gNewCpkModel); // pass Param to parent, by calling EventCallback
+    }
+
+    [CascadingParameter]
+    public DialogFactory Dialogs { get; set; }
+    public async Task ActivateAlert(string title, string message)
+    {
+        if (string.IsNullOrWhiteSpace(title)) title = "Warning!";
+        if (string.IsNullOrWhiteSpace(message)) message = "Something went wrong!";
+
+        await Dialogs.AlertAsync(message, title);
+    }
+}
+
+

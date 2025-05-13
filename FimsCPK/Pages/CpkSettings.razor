@@ -1,5 +1,6 @@
 ﻿@page "/cpksettings"
 
+@using FimsCPK.Data
 @using FimsCPK.Models;
 @using FimsCPK.Services
 @using Telerik.DataSource
@@ -21,8 +22,10 @@
     <CardHeader>
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
         <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
-        Placeholder="Select Model..." ClearButton="true" Filterable="true">
+            Placeholder="Select Model..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
+        <strong style="margin-right:80px" />
+        <TelerikButton ThemeColor="primary" OnClick="ShowAddCpkItem" Icon="@SvgIcon.Plus">Add Cpk Item</TelerikButton>
     </CardHeader>
 
     @************************** PAGE BODY 구성 ***************************************************************
@@ -36,7 +39,6 @@
             <GridToolBarTemplate>
                 @if (gLastSelectedModel.Length > 0)
                 {
-                    <GridCommandButton Command="Add" Icon="@SvgIcon.Plus">Add Cpk Item</GridCommandButton>
                 }
             </GridToolBarTemplate>
             <GridColumns>
@@ -72,6 +74,10 @@
                 <GridColumn Field=@nameof(TspecItem.Ch4Ucl) Title="비고" />
             </GridColumns>
         </TelerikGrid>
+        @if (AddCpkItemDialogVisible)
+        {
+            <AddCpkItemDialog AddCpkItemFinished="OnAddUserFinished" gListModels=@gModelNames gModelName=@gTargetModel></AddCpkItemDialog>
+        }
     </CardBody>
 
 </TelerikCard>
@@ -98,6 +104,9 @@
     [CascadingParameter]
     public DialogFactory Dialogs { get; set; }
     public string gRetMessage { get; set; } = "N";
+
+    //--- Add Cpk Item for a model or for all models
+    public bool AddCpkItemDialogVisible { get; set; } = false;
 
     //======================================================================
     //--- 초기화: 관리 모델들 Listup. 최초 모델에 대해 LCL/UCL Listup 
@@ -241,6 +250,14 @@
         Console.WriteLine("Cancel event is fired.");
     }
 
+    private void ShowAddCpkItem()
+    {
+        //if (bIsAdmin == false)
+        //    return;
+
+        AddCpkItemDialogVisible = true;
+    }
+
     //======================================================================
     //--- CpkItems의 UCL/LCL을 USL/LSL을 기존으로 범위를 좁혀서 설정한다. (아직 미구현)
     public async Task SetCL_WithRatio()
@@ -273,6 +290,14 @@
         }
 
         gRetMessage = confirmed ? "Y" : "N";
+    }
+
+    //=== CpkItem 추가완료 후 처리 루틴: CpkItem 정보를 다시 가져와서 표시
+    private async void OnAddUserFinished(NewCpkRegisterRequestModel newRegisterRequestModel)
+    {
+        AddCpkItemDialogVisible = false;
+        Get_Cpk_Items_For_Model(gLastSelectedModel);
+        StateHasChanged();
     }
 
 

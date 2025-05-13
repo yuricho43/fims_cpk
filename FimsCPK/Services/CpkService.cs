@@ -1,4 +1,5 @@
-﻿using FimsCPK.Models;
+﻿using FimsCPK.Data;
+using FimsCPK.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using static FimsCPK.Pages.Home;
@@ -86,6 +87,12 @@ namespace FimsCPK.Services
             _dbFimsContext.CpkItems.Add(newcpk);
             _dbFimsContext.SaveChanges();
             return "Create successfully";
+        }
+
+        public async Task<int> AddCpkItemAsync(NewCpkRegisterRequestModel newItem)
+        {
+
+            return 1;
         }
 
         public string UpdateCpkItem(CpkItem cpkDto)
