@@ -1,8 +1,10 @@
 ﻿@page "/cpksettings"
 
 @using FimsCPK.Data
+@using FimsCPK.Entities
 @using FimsCPK.Models;
 @using FimsCPK.Services
+@using Microsoft.AspNetCore.Identity
 @using Telerik.DataSource
 @using Telerik.DataSource.Extensions
 @using Telerik.FontIcons;
@@ -10,6 +12,8 @@
 
 @inject IJSRuntime JsRuntime
 @inject CpkService cpkService
+@inject UserManager<AspNetUser> _userManager
+@inject IHttpContextAccessor _httpContextAccessor
 
 @************************** PAGE TITLE *****************************************************************@
 <PageTitle>Fims Dashboard</PageTitle>
@@ -22,10 +26,10 @@
     <CardHeader>
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
         <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
-            Placeholder="Select Model..." ClearButton="true" Filterable="true">
+        Placeholder="Select Model..." ClearButton="true" Filterable="true">
         </TelerikComboBox>
         <strong style="margin-right:80px" />
-        <TelerikButton ThemeColor="primary" OnClick="ShowAddCpkItem" Icon="@SvgIcon.Plus">Add Cpk Item</TelerikButton>
+        <TelerikButton ThemeColor="primary" OnClick="ShowAddCpkItem" Enabled="@IsManager" Icon="@SvgIcon.Plus">Add Cpk Item</TelerikButton>
     </CardHeader>
 
     @************************** PAGE BODY 구성 ***************************************************************
@@ -52,8 +56,8 @@
                 <GridColumn Field=@nameof(CpkItem.Ch3Ucl) Title="Ch3UCL" />
                 <GridCommandColumn>
                     <GridCommandButton Command="Save" Icon="@SvgIcon.Save" ShowInEdit="true">Update</GridCommandButton>
-                    <GridCommandButton Command="Edit" Icon="@SvgIcon.Pencil">Edit</GridCommandButton>
-                    <GridCommandButton Command="Delete" Icon="@SvgIcon.Trash">Delete</GridCommandButton>
+                    <GridCommandButton Command="Edit" Icon="@SvgIcon.Pencil" Enabled="@IsManager">Edit</GridCommandButton>
+                    <GridCommandButton Command="Delete" Icon="@SvgIcon.Trash" Enabled="@IsManager">Delete</GridCommandButton>
                     <GridCommandButton Command="Cancel" Icon="@SvgIcon.Cancel" ShowInEdit="true">Cancel</GridCommandButton>
                 </GridCommandColumn>
             </GridColumns>
@@ -61,7 +65,7 @@
 
         <h4 style="color:blue"><strong>(참고)LSL/USL-@gTargetModel</strong></h4>
         <TelerikGrid Data=@gCpkItemsSL EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
-                     OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
+        OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
             <GridColumns>
                 <GridColumn Field=@nameof(TspecItem.TestNo) Title="TestNo" Editable="true" />
                 <GridColumn Field=@nameof(TspecItem.Ch4Ucl) Title="Name" Editable="true" />
@@ -107,12 +111,38 @@
 
     //--- Add Cpk Item for a model or for all models
     public bool AddCpkItemDialogVisible { get; set; } = false;
-
+    private string curRole = "None";
+    private bool IsManager { get; set; } = false;
     //======================================================================
     //--- 초기화: 관리 모델들 Listup. 최초 모델에 대해 LCL/UCL Listup 
     protected override async Task OnInitializedAsync()
     {
+        curRole = await GetUserRole();
+        if (curRole.Contains("Admin") || curRole.Contains("Manager"))
+            IsManager = true;
         List_Models();
+    }
+
+    private async Task<string>  GetUserRole()
+    {
+        string strRole = "None";
+        var roles = await GetCurrentUserRolesAsync();
+        if (roles.Count > 0)
+            strRole = roles[0];
+        return strRole;
+    }
+
+    public async Task<IList<string>> GetCurrentUserRolesAsync()
+    {
+        // 현재 로그인한 사용자 확인
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            return new List<string>();
+        }
+
+        // 사용자의 역할 반환
+        return await _userManager.GetRolesAsync(user);
     }
 
     //======================================================================
@@ -172,6 +202,9 @@
     //--- Edit Handler : Nothing to do
     void EditHandler(GridCommandEventArgs args)
     {
+        if (IsManager == false)
+            return;
+
         CpkItem item = (CpkItem)args.Item;
 
         // prevent opening for edit based on condition
@@ -186,6 +219,9 @@
     //--- Update LCL/UCL
     async Task UpdateHandler(GridCommandEventArgs args)
     {
+        if (IsManager == false)
+            return;
+
         CpkItem item = (CpkItem)args.Item;
 
         await ActivateConfirm("정말로 수정하시겠습니까 ?");
@@ -205,7 +241,10 @@
     //--- Delete LCL/UCL
     async Task DeleteHandler(GridCommandEventArgs args)
     {
-        CpkItem item = (CpkItem) args.Item;
+        if (IsManager == false)
+            return;
+
+        CpkItem item = (CpkItem)args.Item;
 
         await ActivateConfirm("정말로 삭제하시겠습니까 ?");
         if (gRetMessage == "N")
