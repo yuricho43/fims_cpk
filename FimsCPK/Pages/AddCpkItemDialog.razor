@@ -32,10 +32,10 @@
     <DialogContent>
 
         <TelerikForm Model="@gNewCpkModel"
-                     @ref="@AddUserFormRef"
-                     OnValidSubmit="@HandleValidSubmit"
-                     OnInvalidSubmit="@HandleInvalidSubmit"
-                     Orientation="FormOrientation.Horizontal">
+        @ref="@AddUserFormRef"
+        OnValidSubmit="@HandleValidSubmit"
+        OnInvalidSubmit="@HandleInvalidSubmit"
+        Orientation="FormOrientation.Horizontal">
             <FormValidation>
                 <DataAnnotationsValidator></DataAnnotationsValidator>
             </FormValidation>
@@ -45,13 +45,13 @@
                     <Template>
                         <label for="firsttime" class="k-label k-form-label">Model Name:</label>
                         <TelerikDropDownList @bind-Value="@gModelName"
-                                             DefaultText="Select Model..."
-                                             Filterable="true"
-                                             FilterOperator="@StringFilterOperator.Contains"
-                                             Data="@gListModels"
-                                             Width="250px"
-                                             Size="sm"
-                                             Id="firsttime">
+                        DefaultText="Select Model..."
+                        Filterable="true"
+                        FilterOperator="@StringFilterOperator.Contains"
+                        Data="@gListModels"
+                        Width="250px"
+                        Size="sm"
+                        Id="firsttime">
                             <DropDownListSettings>
                                 <DropDownListPopupSettings Height="400px" />
                             </DropDownListSettings>
@@ -84,13 +84,16 @@
 
 <div class="notification-parent">
     <TelerikNotification @ref="AddUserNotificationComponent"
-                         Class="MyTelerikNotification"
-                         VerticalPosition="@NotificationVerticalPosition.Top"
-                         HorizontalPosition="@NotificationHorizontalPosition.Center">
+    Class="MyTelerikNotification"
+    VerticalPosition="@NotificationVerticalPosition.Top"
+    HorizontalPosition="@NotificationHorizontalPosition.Center">
     </TelerikNotification>
 </div>
 
 @code {
+    [CascadingParameter]
+    public DialogFactory Dialogs { get; set; }
+
     public NewCpkRegisterRequestModel gNewCpkModel { get; set; } = new NewCpkRegisterRequestModel();
     private List<string> Roles { get; set; } = new List<string> { "Reporter", "General", "Manager", "Admin" };
     public TelerikForm AddUserFormRef { get; set; }
@@ -113,6 +116,37 @@
     async void HandleValidSubmit()
     {
         ValidSubmit = true;
+        string message = "";
+
+        string strName = cpkService.GetTestNameFromTestNo(gNewCpkModel.iTestNo);
+        if (string.IsNullOrWhiteSpace(strName))
+        {
+            message = gNewCpkModel.iTestNo.ToString() + "은 존재하지 않는 테스트 번호입니다.";
+            await Dialogs.AlertAsync(message, "TestNo 오류");
+            return;   
+        }
+
+        if (gNewCpkModel.bForAllModel)
+        {
+            message = "전체 모델에 " + gNewCpkModel.iTestNo.ToString() + "(" + strName + ") 을 CpkItem으로 등록하시겠습니까 ?";
+        }
+        else
+        {
+            gNewCpkModel.ModelName = gModelName;
+
+            if (string.IsNullOrWhiteSpace(gNewCpkModel.ModelName))
+            {
+                message = "특정모델에 대한 CpkItem을 설정하려면 모델을 선택하십시오.";
+                await Dialogs.AlertAsync(message, "모델 미지정 오류");
+                return;
+            }
+            message = gNewCpkModel.ModelName + "에 " + gNewCpkModel.iTestNo.ToString() + "(" + strName + ") 을 CpkItem으로 등록하시겠습니까 ?";
+        }
+
+        bool confirm = await Dialogs.ConfirmAsync(message, "CPK Settings");
+        if (confirm == false)
+            return;
+
         var result = await cpkService.AddCpkItemAsync(gNewCpkModel);
 
         if (result >= 0)
@@ -153,8 +187,6 @@
         AddCpkItemFinished.InvokeAsync(gNewCpkModel); // pass Param to parent, by calling EventCallback
     }
 
-    [CascadingParameter]
-    public DialogFactory Dialogs { get; set; }
     public async Task ActivateAlert(string title, string message)
     {
         if (string.IsNullOrWhiteSpace(title)) title = "Warning!";

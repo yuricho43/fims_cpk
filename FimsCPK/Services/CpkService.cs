@@ -73,7 +73,7 @@ namespace FimsCPK.Services
             var newcpk = new CpkItem()
             {
                 TestNo = cpkDto.TestNo,
-                Model  = cpkDto.Model,
+                Model = cpkDto.Model,
                 Ch1Lcl = cpkDto.Ch1Lcl,
                 Ch1Ucl = cpkDto.Ch1Ucl,
                 Ch2Lcl = cpkDto.Ch2Lcl,
@@ -88,11 +88,25 @@ namespace FimsCPK.Services
             _dbFimsContext.SaveChanges();
             return "Create successfully";
         }
-
-        public async Task<int> AddCpkItemAsync(NewCpkRegisterRequestModel newItem)
+        public string CreateCpkItemFromForm(NewCpkRegisterRequestModel cpkRequest)
         {
+            var newcpk = new CpkItem()
+            {
+                TestNo = cpkRequest.iTestNo,
+                Model = cpkRequest.ModelName,
+                Ch1Lcl = cpkRequest.LCL1,
+                Ch1Ucl = cpkRequest.UCL1,
+                Ch2Lcl = cpkRequest.LCL2,
+                Ch2Ucl = cpkRequest.UCL2,
+                Ch3Lcl = cpkRequest.LCL3,
+                Ch3Ucl = cpkRequest.UCL3,
+                Ch4Lcl = cpkRequest.LCL4,
+                Ch4Ucl = cpkRequest.UCL4,
+            };
 
-            return 1;
+            _dbFimsContext.CpkItems.Add(newcpk);
+            _dbFimsContext.SaveChanges();
+            return "Create successfully";
         }
 
         public string UpdateCpkItem(CpkItem cpkDto)
@@ -146,7 +160,7 @@ namespace FimsCPK.Services
 
         public List<TspecItem> GetSLValuesForModelAndTestNo(string strModel, List<int> listTestNo)
         {
-            int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel.Contains(strModel)==true).Select(p => p.Id).FirstOrDefault();
+            int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
             List<TspecItem> tCpkItemsSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && listTestNo.Contains(x.TestNo)).ToList();
             foreach (var item in tCpkItemsSL)
             {
@@ -165,13 +179,15 @@ namespace FimsCPK.Services
         public List<CpkItem> GetCLValuesForModel(string strModel)
         {
             //--- remove  (   ). ex CD222(NXP) ==> CD222
+            /*
             int ix = strModel.IndexOf("(");
             if (ix > 0)
             {
                 strModel = strModel.Substring(0, ix);
             }
-             
-            List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model.Contains(strModel) == true).ToList();
+            */
+
+            List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model==strModel).OrderBy(x=>x.TestNo).ToList();
             foreach (var item in tCpkItemsCL)
             {
                 item.Reserved1 = _dbFimsContext.TspecItems.Where(x => x.TestNo == item.TestNo).Select(p => p.Title).FirstOrDefault();
@@ -290,6 +306,34 @@ namespace FimsCPK.Services
 
         //=================================================
         // Utility Functions
+        public string GetTestNameFromTestNo(int iTestNo)
+        {
+            string TestName = _dbFimsContext.TspecItems.Where(x => x.TestNo == iTestNo).Select(p => p.Title).FirstOrDefault();
+
+            return TestName;
+        }
+
+        //--- CpkItem을 DB에 추가
+        //    1) 특정 모델에 item을 DB에 저장하기
+        //       - Model에 해당 TestNo가 존재 하는지 체크  ==> -1 return
+        //       - DB에 저장
+        //    2) 모든 모델리스트에 대해 1)을 반복
+        //       - 
+        public async Task<int> AddCpkItemAsync(NewCpkRegisterRequestModel newItem)
+        {
+            if (newItem.bForAllModel == false)
+            {
+                var result = _dbFimsContext.CpkItems.Where(n => n.TestNo == newItem.iTestNo).FirstOrDefault();
+                if (result != null)
+                    return -1;      // already exist
+
+
+                CreateCpkItemFromForm(newItem);
+
+            }
+            return 1;
+        }
+
 
 
     }
