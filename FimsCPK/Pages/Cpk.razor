@@ -632,6 +632,9 @@
     //      모델이 변경되면, 해당 모델의 TestNo List를 새로 가져온다.
     private async void ModelChangeHandler(object theUserInput)
     {
+        if (theUserInput == null)
+            return;
+
         string selectedModel = theUserInput.ToString();
         Refresh_TestNo_For_Model(selectedModel);
     }

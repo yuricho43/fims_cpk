@@ -167,6 +167,8 @@
         {
             string reason = "";
             reason = "unknown";
+            if (result == -1)
+                reason = "이미 존재하는 CpkItem";
             ShowErrors = true;
             await ActivateAlert("cpkItem 등록 실패", reason);
         }

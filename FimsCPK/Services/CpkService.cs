@@ -161,6 +161,9 @@ namespace FimsCPK.Services
         public List<TspecItem> GetSLValuesForModelAndTestNo(string strModel, List<int> listTestNo)
         {
             int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
+            if (idModel <= 0)
+                idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel.Contains(strModel)==true).Select(p => p.Id).FirstOrDefault();
+
             List<TspecItem> tCpkItemsSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && listTestNo.Contains(x.TestNo)).ToList();
             foreach (var item in tCpkItemsSL)
             {
@@ -323,13 +326,24 @@ namespace FimsCPK.Services
         {
             if (newItem.bForAllModel == false)
             {
-                var result = _dbFimsContext.CpkItems.Where(n => n.TestNo == newItem.iTestNo).FirstOrDefault();
+                var result = _dbFimsContext.CpkItems.Where(n => n.TestNo == newItem.iTestNo && n.Model == newItem.ModelName).FirstOrDefault();
                 if (result != null)
                     return -1;      // already exist
 
-
                 CreateCpkItemFromForm(newItem);
+            } else
+            {
+                List<string> listModels = GetCpkModelNamesForSetting();
 
+                foreach(string modelname in listModels)
+                {
+                    newItem.ModelName = modelname;
+                    var result = _dbFimsContext.CpkItems.Where(n => n.TestNo == newItem.iTestNo && n.Model == newItem.ModelName).FirstOrDefault();
+                    if (result != null)
+                        continue;
+
+                    CreateCpkItemFromForm(newItem);
+                }
             }
             return 1;
         }
