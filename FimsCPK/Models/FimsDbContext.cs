@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using FimsCPK.Data;
 using FimsCPK.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +28,8 @@ public partial class FimsDbContext : DbContext
     public virtual DbSet<TspecItem> TspecItems { get; set; }
 
     public virtual DbSet<TspecModel> TspecModels { get; set; }
+
+    public virtual DbSet<UserConfigEntity> UserConfigEntities { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

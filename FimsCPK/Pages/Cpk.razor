@@ -1,7 +1,10 @@
 ﻿@page "/cpk"
 
+@using FimsCPK.Data
+@using FimsCPK.Entities
 @using FimsCPK.Models;
 @using FimsCPK.Services
+@using Microsoft.AspNetCore.Identity
 @using Telerik.DataSource
 @using Telerik.DataSource.Extensions
 @using Telerik.FontIcons;
@@ -9,6 +12,9 @@
 @inject IJSRuntime JsRuntime
 @inject CpkService cpkService
 @inject NavigationManager NavManager
+@inject UserConfigureService cfgService
+@inject UserManager<AspNetUser> _userManager
+@inject IHttpContextAccessor _httpContextAccessor
 
 @************************** PAGE TITLE *****************************************************************@
 <PageTitle>Fims Dashboard</PageTitle>
@@ -113,12 +119,12 @@
                             </HeaderTemplate>
                             <Content>
                                 <TelerikGrid Data="@gCpkStats"
-                                             @ref="@GridRef"
-                                             Pageable="false"
-                                             Sortable="true"
-                                             FilterMode="@GridFilterMode.None"
-                                             OnRowDoubleClick="@OnCpkRowDoubleClickHandler"                                           
-                                             Height="100%">
+                                @ref="@GridRef"
+                                Pageable="false"
+                                Sortable="true"
+                                FilterMode="@GridFilterMode.None"
+                                OnRowDoubleClick="@OnCpkRowDoubleClickHandler"                                           
+                                Height="100%">
                                     <GridExport>
                                         <GridExcelExport FileName="@gStrCpkFilename" AllPages="true" />
                                     </GridExport>
@@ -133,7 +139,7 @@
                                         <GridColumn Field=@nameof(CPK_Statistics.numGood) Width="30px" Title="양품수" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.cp) Width="30px" Title="Cp" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.cpk) Width="30px" Title="Cpk" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right"
-                                                    OnCellRender="@OnCellRenderHandler" />
+                                        OnCellRender="@OnCellRenderHandler" />
                                         <GridColumn Field=@nameof(CPK_Statistics.lcl) Width="30px" Title="LCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.ucl) Width="30px" Title="UCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.lsl) Width="30px" Title="LSL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
@@ -166,10 +172,10 @@
                                                 @if (li == 0)
                                                 {
                                                     <ChartSeries Type="ChartSeriesType.Line"
-                                                                 Name="CTQ 측정값"
-                                                                 Data="@gListCtq"
-                                                                 Color="@gColorValues[li]"
-                                                                 Field="@gChannelValues[li]">
+                                                    Name="CTQ 측정값"
+                                                    Data="@gListCtq"
+                                                    Color="@gColorValues[li]"
+                                                    Field="@gChannelValues[li]">
                                                         <ChartSeriesMarkers Size="4" />
                                                         <ChartSeriesTooltip Visible="true">
                                                             <Template Context="ctx">
@@ -185,10 +191,10 @@
                                                 else if (li == 1)
                                                 {
                                                     <ChartSeries Type="ChartSeriesType.Line"
-                                                                 Name="CTQ 측정값"
-                                                                 Data="@gListCtq"
-                                                                 Color="@gColorValues[li]"
-                                                                 Field="@gChannelValues[li]">
+                                                    Name="CTQ 측정값"
+                                                    Data="@gListCtq"
+                                                    Color="@gColorValues[li]"
+                                                    Field="@gChannelValues[li]">
                                                         <ChartSeriesMarkers Size="4" />
                                                         <ChartSeriesTooltip Visible="true">
                                                             <Template Context="ctx">
@@ -204,10 +210,10 @@
                                                 else
                                                 {
                                                     <ChartSeries Type="ChartSeriesType.Line"
-                                                                 Name="CTQ 측정값"
-                                                                 Data="@gListCtq"
-                                                                 Color="@gColorValues[li]"
-                                                                 Field="@gChannelValues[li]">
+                                                    Name="CTQ 측정값"
+                                                    Data="@gListCtq"
+                                                    Color="@gColorValues[li]"
+                                                    Field="@gChannelValues[li]">
                                                         <ChartSeriesMarkers Size="4" />
                                                         <ChartSeriesTooltip Visible="true">
                                                             <Template Context="ctx">
@@ -224,10 +230,10 @@
                                             else
                                             {
                                                 <ChartSeries Type="ChartSeriesType.Line"
-                                                             Name="CTQ 측정값"
-                                                             Data="@gListCtqBlank"
-                                                             Color=@gColorValues[li]
-                                                             Field=@gChannelValues[li]>
+                                                Name="CTQ 측정값"
+                                                Data="@gListCtqBlank"
+                                                Color=@gColorValues[li]
+                                                Field=@gChannelValues[li]>
                                                 </ChartSeries>
                                             }
                                         </ChartSeriesItems>
@@ -514,7 +520,7 @@
     public int gSpanYear = 0;
     public int gPageSize = 100;
     string gLastSelectedModel = "";
-
+    private string gUserId = "";
 
     //--- TestNo 콤보박스에 대한 변수
     public TelerikComboBox<string, string> ComboBoxRef { get; set; }
@@ -601,7 +607,15 @@
     //     초기화 : excel filename 지정, 기본기간지정, 변수 초기화, 해당 ModelName 추출
     protected override async Task OnInitializedAsync()
     {
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        gUserId = user.UserName;
+
         gStartYear = gEndYear.AddMonths(-12);
+
+        //--- Get Configuration
+        var temp = await LoadConfiguration();
+        StateHasChanged();
+
         gCpkStats = new List<CPK_Statistics>();
         List_Models();
 
@@ -782,6 +796,8 @@
 
         gStrFilename = "CtqList_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
         gStrCpkFilename = "Cpk통계_"  + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
+
+        SaveConfiguration();
     }
 
     //======================================================================
@@ -1044,6 +1060,36 @@
         double dix = Math.Ceiling(diff / step);
         return dix;
     }
+
+    //=== Save Configuration
+    //--- Save Configuration : language
+    public async void SaveConfiguration()
+    {
+        UserConfiguration config = new UserConfiguration();
+        config.bDuration = gSetDuration;
+        config.dStartDate = gStartYear;
+        config.dEndDate = gEndYear;
+        config.ModelName = gTargetModel;
+        config.TestItem = gTargetNumber;
+        config.UserId = gUserId;
+        await cfgService.SaveUserConfigAsync(config);
+    }
+    public async Task<int> LoadConfiguration()
+    {
+        string userId = gUserId;
+        UserConfiguration config = await cfgService.LoadUserConfigAsync(userId);
+        if (config != null)
+        {
+            gSetDuration = config.bDuration;
+            gStartYear = config.dStartDate;
+            gEndYear = config.dEndDate;
+            gTargetModel = config.ModelName;
+            gTargetNumber = config.TestItem;
+        }
+
+        return 1;
+    }
+
 }
 
 <style>

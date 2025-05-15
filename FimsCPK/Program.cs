@@ -24,6 +24,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddTelerikBlazor();
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddScoped<CpkService>();
+builder.Services.AddScoped<UserConfigureService>();
+builder.Services.AddHttpClient();
 
 //--- login
 builder.Services.AddAuthentication();
