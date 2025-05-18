@@ -31,22 +31,22 @@
                 <label for="myIncludeDate" ThemeColor="success" style="color:red ">&nbsp;&nbsp;&nbsp;기간지정</label>
                 <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gSetDuration" />&nbsp;&nbsp
                 <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
-                BottomView="@CalendarView.Month"
-                Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
+                                   BottomView="@CalendarView.Month"
+                                   Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
                 ~
                 <TelerikDatePicker @bind-Value="@gEndYear"
-                BottomView="@CalendarView.Month"
-                Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
+                                   BottomView="@CalendarView.Month"
+                                   Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
 
                 <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
                 <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
-                Placeholder="Select Model..." ClearButton="true" Filterable="true">
+                                 Placeholder="Select Model..." ClearButton="true" Filterable="true">
                 </TelerikComboBox>
 
                 <label for="myTestNum"> &nbsp;&nbsp;&nbsp;&nbsp;테스트번호:</label>
                 <TelerikComboBox @ref="@ComboBoxRef"
-                Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber" OnChange="@Retrieve_TestData_For_Model"
-                Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
+                                 Data="@gTestNumbers" Width="300px" @bind-Value="@gTargetNumber" OnChange="@Retrieve_TestData_For_Model"
+                                 Placeholder="Select Test Item..." ClearButton="true" Filterable="true">
                 </TelerikComboBox>
 
                 &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -63,10 +63,10 @@
 
             <CardBody>
                 <TelerikTileLayout Columns="6"
-                ColumnWidth="18%"
-                RowHeight="210px"
-                Reorderable="true"
-                Resizable="true">
+                                   ColumnWidth="18%"
+                                   RowHeight="210px"
+                                   Reorderable="true"
+                                   Resizable="true">
                     <TileLayoutItems>
                         <TileLayoutItem HeaderText="@gTargetModel" RowSpan="4" ColSpan="2">
                             <HeaderTemplate>
@@ -74,18 +74,18 @@
                             </HeaderTemplate>
                             <Content>
                                 <TelerikGrid Class="cpk-grid"
-                                Data="@gListCtq"
-                                ConfirmDelete="true"
-                                Pageable="true"
-                                Groupable="false"
-                                Sortable="false"
-                                FilterMode="GridFilterMode.FilterMenu"
-                                Resizable="true"
-                                Reorderable="true"
-                                EditMode="GridEditMode.Popup"
-                                PageSize=@gPageSize
-                                Navigable="true"
-                                Height="100%">
+                                             Data="@gListCtq"
+                                             ConfirmDelete="true"
+                                             Pageable="true"
+                                             Groupable="false"
+                                             Sortable="false"
+                                             FilterMode="GridFilterMode.FilterMenu"
+                                             Resizable="true"
+                                             Reorderable="true"
+                                             EditMode="GridEditMode.Popup"
+                                             PageSize=@gPageSize
+                                             Navigable="true"
+                                             Height="100%">
 
                                     <GridToolBarTemplate>
                                         <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">엑셀 출력</GridCommandButton>
@@ -93,8 +93,8 @@
 
                                     <GridSettings>
                                         <GridPagerSettings InputType="PagerInputType.Buttons"
-                                        ButtonCount="20"
-                                        Position="PagerPosition.Top">
+                                                           ButtonCount="20"
+                                                           Position="PagerPosition.Top">
                                         </GridPagerSettings>
                                     </GridSettings>
 
@@ -119,12 +119,12 @@
                             </HeaderTemplate>
                             <Content>
                                 <TelerikGrid Data="@gCpkStats"
-                                @ref="@GridRef"
-                                Pageable="false"
-                                Sortable="true"
-                                FilterMode="@GridFilterMode.None"
-                                OnRowDoubleClick="@OnCpkRowDoubleClickHandler"                                           
-                                Height="100%">
+                                             @ref="@GridRef"
+                                             Pageable="false"
+                                             Sortable="true"
+                                             FilterMode="@GridFilterMode.None"
+                                             OnRowDoubleClick="@OnCpkRowDoubleClickHandler"
+                                             Height="100%">
                                     <GridExport>
                                         <GridExcelExport FileName="@gStrCpkFilename" AllPages="true" />
                                     </GridExport>
@@ -139,7 +139,7 @@
                                         <GridColumn Field=@nameof(CPK_Statistics.numGood) Width="30px" Title="양품수" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.cp) Width="30px" Title="Cp" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.cpk) Width="30px" Title="Cpk" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right"
-                                        OnCellRender="@OnCellRenderHandler" />
+                                                    OnCellRender="@OnCellRenderHandler" />
                                         <GridColumn Field=@nameof(CPK_Statistics.lcl) Width="30px" Title="LCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.ucl) Width="30px" Title="UCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.lsl) Width="30px" Title="LSL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
@@ -172,10 +172,10 @@
                                                 @if (li == 0)
                                                 {
                                                     <ChartSeries Type="ChartSeriesType.Line"
-                                                    Name="CTQ 측정값"
-                                                    Data="@gListCtq"
-                                                    Color="@gColorValues[li]"
-                                                    Field="@gChannelValues[li]">
+                                                                 Name="CTQ 측정값"
+                                                                 Data="@gListCtq"
+                                                                 Color="@gColorValues[li]"
+                                                                 Field="@gChannelValues[li]">
                                                         <ChartSeriesMarkers Size="4" />
                                                         <ChartSeriesTooltip Visible="true">
                                                             <Template Context="ctx">
@@ -191,10 +191,10 @@
                                                 else if (li == 1)
                                                 {
                                                     <ChartSeries Type="ChartSeriesType.Line"
-                                                    Name="CTQ 측정값"
-                                                    Data="@gListCtq"
-                                                    Color="@gColorValues[li]"
-                                                    Field="@gChannelValues[li]">
+                                                                 Name="CTQ 측정값"
+                                                                 Data="@gListCtq"
+                                                                 Color="@gColorValues[li]"
+                                                                 Field="@gChannelValues[li]">
                                                         <ChartSeriesMarkers Size="4" />
                                                         <ChartSeriesTooltip Visible="true">
                                                             <Template Context="ctx">
@@ -210,10 +210,10 @@
                                                 else
                                                 {
                                                     <ChartSeries Type="ChartSeriesType.Line"
-                                                    Name="CTQ 측정값"
-                                                    Data="@gListCtq"
-                                                    Color="@gColorValues[li]"
-                                                    Field="@gChannelValues[li]">
+                                                                 Name="CTQ 측정값"
+                                                                 Data="@gListCtq"
+                                                                 Color="@gColorValues[li]"
+                                                                 Field="@gChannelValues[li]">
                                                         <ChartSeriesMarkers Size="4" />
                                                         <ChartSeriesTooltip Visible="true">
                                                             <Template Context="ctx">
@@ -230,10 +230,10 @@
                                             else
                                             {
                                                 <ChartSeries Type="ChartSeriesType.Line"
-                                                Name="CTQ 측정값"
-                                                Data="@gListCtqBlank"
-                                                Color=@gColorValues[li]
-                                                Field=@gChannelValues[li]>
+                                                             Name="CTQ 측정값"
+                                                             Data="@gListCtqBlank"
+                                                             Color=@gColorValues[li]
+                                                             Field=@gChannelValues[li]>
                                                 </ChartSeries>
                                             }
                                         </ChartSeriesItems>
@@ -268,15 +268,15 @@
 
         @******************* 정규분포/XR 윈도우 Popup ********************@
         <TelerikWindow Visible="@IsWindowVisible"
-        VisibleChanged="@XRWindowShowChangedHandler"
-        Resizable="false"
-        Modal="true"
-        MinHeight="200px"
-        Height="800px"
-        MaxHeight="1024px"
-        MinWidth="400px"
-        Width="1600px"
-        MaxWidth="1920px">
+                       VisibleChanged="@XRWindowShowChangedHandler"
+                       Resizable="false"
+                       Modal="true"
+                       MinHeight="200px"
+                       Height="800px"
+                       MaxHeight="1024px"
+                       MinWidth="400px"
+                       Width="1600px"
+                       MaxWidth="1920px">
             <WindowTitle>
                 @XRWindowTitle
             </WindowTitle>
@@ -285,10 +285,10 @@
             </WindowActions>
             <WindowContent>
                 <TelerikTileLayout Columns="6"
-                ColumnWidth="18%"
-                RowHeight="200px"
-                Reorderable="true"
-                Resizable="true">
+                                   ColumnWidth="18%"
+                                   RowHeight="200px"
+                                   Reorderable="true"
+                                   Resizable="true">
                     <TileLayoutItems>
 
                         <TileLayoutItem HeaderText="정규분포" RowSpan="3" ColSpan="3">
@@ -301,10 +301,10 @@
                                     <ChartLegend Visible="false"></ChartLegend>
                                     <ChartSeriesItems>
                                         <ChartSeries Type="ChartSeriesType.Line"
-                                        Name="Value1"
-                                        Data="@gNormalValue"
-                                        Color="blue"
-                                        Field="@nameof(CPK_NormalDist.value1)" CategoryField="@nameof(CPK_NormalDist.value2)">
+                                                     Name="Value1"
+                                                     Data="@gNormalValue"
+                                                     Color="blue"
+                                                     Field="@nameof(CPK_NormalDist.value1)" CategoryField="@nameof(CPK_NormalDist.value2)">
                                             @*
                                             <ChartSeriesLabels Template="#=value#" Visible="true" Color="blue" Background="#FF000000"></ChartSeriesLabels>
                                             *@
@@ -351,10 +351,10 @@
                                             @if (@giSelectedCh == 1)
                                             {
                                                 <ChartSeries Type="ChartSeriesType.Line"
-                                                Name="CTQ-측정값"
-                                                Data="@gListCtq"
-                                                Color="blue"
-                                                Field="@strField">
+                                                             Name="CTQ-측정값"
+                                                             Data="@gListCtq"
+                                                             Color="blue"
+                                                             Field="@strField">
                                                     <ChartSeriesMarkers Size="3" />
                                                     <ChartSeriesTooltip Visible="true">
                                                         <Template Context="ctx">
@@ -371,10 +371,10 @@
                                             {
                                                 strField = "value2";
                                                 <ChartSeries Type="ChartSeriesType.Line"
-                                                Name="CTQ-측정값"
-                                                Data="@gListCtq"
-                                                Color="blue"
-                                                Field="@strField">
+                                                             Name="CTQ-측정값"
+                                                             Data="@gListCtq"
+                                                             Color="blue"
+                                                             Field="@strField">
                                                     <ChartSeriesMarkers Size="3" />
                                                     <ChartSeriesTooltip Visible="true">
                                                         <Template Context="ctx">
@@ -391,10 +391,10 @@
                                             {
                                                 strField = "value3";
                                                 <ChartSeries Type="ChartSeriesType.Line"
-                                                Name="CTQ-측정값"
-                                                Data="@gListCtq"
-                                                Color="blue"
-                                                Field="@strField">
+                                                             Name="CTQ-측정값"
+                                                             Data="@gListCtq"
+                                                             Color="blue"
+                                                             Field="@strField">
                                                     <ChartSeriesMarkers Size="3" />
                                                     <ChartSeriesTooltip Visible="true">
                                                         <Template Context="ctx">
@@ -470,6 +470,15 @@
         public int ix { get; set; }
     };
 
+    public class CPK_ItemsNew
+    {
+        public string sn { get; set; }
+        public DateTime workdate { get; set; }
+        public string value1 { get; set; }
+        public string value2 { get; set; }
+        public string value3 { get; set; }
+        public int ix { get; set; }
+    };
     //--- CPK 통계 구조체
     public class CPK_Statistics
     {
@@ -597,7 +606,8 @@
         if (item.cpk < 1.33)
         {
             args.Class = "cpkNotGood";
-        } else
+        }
+        else
         {
             args.Class = "cpkGood";
         }
@@ -613,14 +623,14 @@
         gStartYear = gEndYear.AddMonths(-12);
 
         //--- Get Configuration
-        var temp = await LoadConfiguration();
+        // In 0.9.9 var temp = await LoadConfiguration();
         StateHasChanged();
 
         gCpkStats = new List<CPK_Statistics>();
         List_Models();
 
         if (string.IsNullOrWhiteSpace(gTargetModel) ||
-            string.IsNullOrWhiteSpace(gTargetNumber) )
+            string.IsNullOrWhiteSpace(gTargetNumber))
             return;
 
         Retrieve_TestData_For_Model();
@@ -669,7 +679,7 @@
         gTestNumbers.Clear();
         using (var db = new FimsDbContext())
         {
-            var lists = db.CpkItems.Where(n => gLastSelectedModel.Contains(n.Model) == true).Select(p => p.TestNo).ToList();
+            var lists = db.CpkItems.Where(n => gLastSelectedModel.Contains(n.Model) == true).OrderBy(n => n.TestNo).Select(p => p.TestNo).ToList();
 
             List<int> temp = lists.ToList();
             if (temp.Count() <= 0)
@@ -705,32 +715,51 @@
         string strTargetNo = gTargetNumber.Substring(gTargetNumber.IndexOf("(") + 1, gTargetNumber.IndexOf(")") - 1);
         gTargetOnlyNumber = int.Parse(strTargetNo);
 
+        gListCtq = new();       // clear
         //--- 1) DB에서 해당Model, 해당TestNo에 대한 검사 data를 추출한다. (ch1~3 값이 모두 0인 것은 제외한다.)
         using (var db = new FimsDbContext())
         {
+            List<CPK_ItemsNew> listTempCpk = new();
+
             if (gSetDuration == false) // 날짜 무시
             {
+                /*
                 gListCtq = (from sheet in db.Tsheets
-                            from item in db.Titems
-                            orderby sheet.InspectionEndDateTime
+                                from item in db.Titems
+                                orderby sheet.InspectionEndDateTime
                             where sheet.ProductModel == gTargetModel &&
-                                 sheet.Id == item.TsheetId &&
-                                 item.TestNo == gTargetOnlyNumber
+                            sheet.Id == item.TsheetId &&
+                            item.TestNo == gTargetOnlyNumber
                             select new CPK_Items
-                                {
-                                    sn = sheet.ProductSerial,
-                                    workdate = sheet.InspectionEndDateTime,
-                                    value1 = (float)(item.Ch1Data == null ? 0.0 : Math.Round(float.Parse(item.Ch1Data), 3)),
-                                    value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
-                                    value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
+                            {
+                                sn = sheet.ProductSerial,
+                                workdate = sheet.InspectionEndDateTime,
+                                value1 = StringToFloatValue(item.Ch1Data),
+                                value2 = StringToFloatValue(item.Ch2Data),
+                                value3 = StringToFloatValue(item.Ch3Data)
                                 }).ToList();
+                */
+                listTempCpk = (from sheet in db.Tsheets
+                                from item in db.Titems
+                                orderby sheet.InspectionEndDateTime
+                                where sheet.ProductModel == gTargetModel &&
+                                    sheet.Id == item.TsheetId &&
+                                    item.TestNo == gTargetOnlyNumber
+                                select new CPK_ItemsNew
+                                   {
+                                       sn = sheet.ProductSerial,
+                                       workdate = sheet.InspectionEndDateTime,
+                                       value1 = item.Ch1Data,
+                                       value2 = item.Ch2Data,
+                                       value3 = item.Ch3Data
+                                   }).ToList();
             }
             else
             {
                 string strStartDate = gStartYear.ToString("yyyy-MM-dd");
                 string strEndDate = gEndYear.ToString("yyyy-MM-dd");
 
-                gListCtq = (from sheet in db.Tsheets
+                listTempCpk = (from sheet in db.Tsheets
                             from item in db.Titems
                             orderby sheet.InspectionEndDateTime
                             where sheet.ProductModel == gTargetModel &&
@@ -738,14 +767,25 @@
                                  item.TestNo == gTargetOnlyNumber &&
                                  sheet.InspectionEndDateTime >= gStartYear &&
                                  sheet.InspectionEndDateTime <= gEndYear
-                            select new CPK_Items
-                                {
-                                    sn = sheet.ProductSerial,
-                                    workdate = sheet.InspectionEndDateTime,
-                                    value1 = (float)(item.Ch1Data == null ? 0.0 : Math.Round(float.Parse(item.Ch1Data), 3)),
-                                    value2 = (float)(item.Ch2Data == null ? 0.0 : float.Parse(item.Ch2Data)),
-                                    value3 = (float)(item.Ch3Data == null ? 0.0 : float.Parse(item.Ch3Data))
-                                }).ToList();
+                            select new CPK_ItemsNew
+                                   {
+                                       sn = sheet.ProductSerial,
+                                       workdate = sheet.InspectionEndDateTime,
+                                       value1 = item.Ch1Data,
+                                       value2 = item.Ch2Data,
+                                       value3 = item.Ch3Data
+                                   }).ToList();
+            }
+
+            foreach (var aa in listTempCpk)
+            {
+                CPK_Items ci = new();
+                ci.sn = aa.sn;
+                ci.workdate = aa.workdate;
+                ci.value1 = StringToFloatValue(aa.value1);
+                ci.value2 = StringToFloatValue(aa.value2);
+                ci.value3 = StringToFloatValue(aa.value3);
+                gListCtq.Add(ci);
             }
 
             gListCtq = gListCtq.Where(x => x.value1 != 0 || x.value2 != 0 || x.value3 != 0).ToList();
@@ -795,9 +835,20 @@
         }
 
         gStrFilename = "CtqList_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
-        gStrCpkFilename = "Cpk통계_"  + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
+        gStrCpkFilename = "Cpk통계_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
 
-        SaveConfiguration();
+        // In 0.9.9 SaveConfiguration();
+    }
+
+    float StringToFloatValue(string? svalue)
+    {
+        float fRet = 0.0f;
+        if (svalue == null)
+            return fRet;
+
+        fRet = float.TryParse(svalue, out var temp) ? temp : 0.0f;
+        fRet = (float)Math.Round(fRet, 3);
+        return fRet;
     }
 
     //======================================================================
@@ -980,16 +1031,19 @@
         {
             dlsl = double.Parse(stats.lsl);
             dusl = double.Parse(stats.usl);
-        } else
+        }
+        else
         {
             dlsl = gChAvg - gChStdDev * 5;
             dusl = gChAvg + gChStdDev * 5;
         }
 
-        if (stats.lcl != null) {
+        if (stats.lcl != null)
+        {
             dlcl = double.Parse(stats.lcl);
             ducl = double.Parse(stats.ucl);
-        } else
+        }
+        else
         {
             dlcl = dlsl;
             ducl = dusl;
