@@ -623,7 +623,7 @@
         gStartYear = gEndYear.AddMonths(-12);
 
         //--- Get Configuration
-        // In 0.9.9 var temp = await LoadConfiguration();
+        var temp = await LoadConfiguration();// In 0.9.9 var
         StateHasChanged();
 
         gCpkStats = new List<CPK_Statistics>();
@@ -837,7 +837,7 @@
         gStrFilename = "CtqList_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
         gStrCpkFilename = "Cpk통계_" + gTargetModel + "_" + gTargetNumber + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
 
-        // In 0.9.9 SaveConfiguration();
+        SaveConfiguration();// In 0.9.9
     }
 
     float StringToFloatValue(string? svalue)

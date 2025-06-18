@@ -250,7 +250,12 @@ namespace FimsCPK.Services
         }
 
         //--- Get Model List for Tested Models
-        public List<string> GetCpkModelNames(int iLowLimit)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="iLowLimit">최소 검사 장비 수</param>
+        /// <returns></returns>
+        public List<string> GetCpkModelNames(int iMinNumEquips)
         {
             gStrModels.Clear();
             //--- if already extract target models
@@ -273,7 +278,7 @@ namespace FimsCPK.Services
 
             foreach (var item in models)
             {
-                if (item.count >= iLowLimit)
+                if (item.count >= iMinNumEquips)
                     gStrModels.Add(item.model.ToString());
             }
 
