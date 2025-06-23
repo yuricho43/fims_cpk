@@ -27,6 +27,9 @@ builder.Services.AddScoped<CpkService>();
 builder.Services.AddScoped<UserConfigureService>();
 builder.Services.AddHttpClient();
 
+//--- for user info access in service routine
+builder.Services.AddHttpContextAccessor();
+
 //--- login
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();

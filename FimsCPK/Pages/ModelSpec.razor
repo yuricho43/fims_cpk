@@ -1,11 +1,13 @@
 ﻿@page "/modelspec"
 
 @using FimsCPK.Models;
+@using FimsCPK.Services
 @using Telerik.DataSource
 @using Telerik.DataSource.Extensions
 @using Telerik.FontIcons;
 @using Telerik.SvgIcons;
 @inject IJSRuntime JsRuntime
+@inject UserConfigureService cfgService
 
 <PageTitle>Fims Dashboard</PageTitle>
 <div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> 모델 검사 스펙 </div>
@@ -15,26 +17,27 @@
         &nbsp;&nbsp;&nbsp
         <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
         <TelerikComboBox Data="@gModelNames" Width="250px" @bind-Value="@gStringModel"
-                         Placeholder="Select an item..." ClearButton="true" Filterable="true" TextField="MyTextField" ValueField="MyValueField" AllowCustom="true">
+        Placeholder="Select an item..." ClearButton="true" Filterable="true" TextField="MyTextField" ValueField="MyValueField" AllowCustom="true">
         </TelerikComboBox>
         &nbsp;&nbsp;&nbsp;&nbsp;<strong>[항목수=@gCounter]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <TelerikButton ThemeColor="success" OnClick="@Retrieve_Model_Specs" Icon="FontIcon.Search">검사스펙 보기</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
+        <TelerikButton ThemeColor="primary" OnClick="@PopupModelManageWindow" Enabled="@IsManager" Icon="FontIcon.Search">모델/스펙 관리하기</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
     </CardHeader>
 
     <CardBody>
 
         <TelerikGrid Class="item-grid"
-                     Data="@gSpecItemList"
-                     ConfirmDelete="true"
-                     Pageable="false"
-                     Groupable="false"
-                     Sortable="false"
-                     FilterMode="GridFilterMode.None"
-                     Resizable="true"
-                     Reorderable="true"
-                     EditMode="GridEditMode.Popup"
-                     Navigable="true"
-                     Height="100%">
+        Data="@gSpecItemList"
+        ConfirmDelete="true"
+        Pageable="false"
+        Groupable="false"
+        Sortable="false"
+        FilterMode="GridFilterMode.None"
+        Resizable="true"
+        Reorderable="true"
+        EditMode="GridEditMode.Popup"
+        Navigable="true"
+        Height="100%">
 
             <GridToolBarTemplate>
                 <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">Export to Excel</GridCommandButton>
@@ -42,8 +45,8 @@
 
             <GridSettings>
                 <GridPagerSettings InputType="PagerInputType.Buttons"
-                                   ButtonCount="20"
-                                   Position="PagerPosition.Top">
+                ButtonCount="20"
+                Position="PagerPosition.Top">
                 </GridPagerSettings>
             </GridSettings>
 
@@ -84,9 +87,30 @@
     </CardBody>
 
 </TelerikCard>
+<TelerikWindow Visible="@ModelAddWindowVisible"
+VisibleChanged="@ModelAddVisibleChangedHandler"
+Modal="true"
+Draggable="true"
+Resizable="true"
+MinHeight="200px"
+Height="80%"
+MaxHeight="100%"
+MinWidth="400px"
+Width="80%"
+MaxWidth="100%">
+    <WindowTitle>
+        <h4 style="color:blue">FIMS Model Specification Add</h4>
+    </WindowTitle>
+    <WindowActions>
+        <WindowAction Name="Close" />
+    </WindowActions>
+    <WindowContent>
+        <ManageModelSpec gExistingModels="@gModelNames"> </ManageModelSpec>
+    </WindowContent>
+</TelerikWindow>
 
 @code {
-    static List<string> gModelNames = new List<string>();
+    List<string> gModelNames = new List<string>();
     private string gStringModel = "";
     public List<TspecItem> gSpecItemList { get; set; }
     private int gCounter = 0;
@@ -94,12 +118,21 @@
 
     bool ExportAllPages { get; set; }
 
+    //--- Model Add Window
+    private bool ModelAddWindowVisible = false;
+    //--- For Model/Spec Management
+    private bool IsManager { get; set; } = false;
+
     protected override async Task OnInitializedAsync()
     {
         gNumChannel = 4;
         List_Models();
-        //gStringModel = gModelNames.Count > 0 ? gModelNames[0] : "";
-        //Retrieve_Model_Specs();
+
+        //--- Check Role
+        List<string> curRole = cfgService.GetCurrentUserRoles();
+        if (curRole.Contains("Admin") || curRole.Contains("Manager"))
+            IsManager = true;
+
     }
 
     private void Retrieve_Model_Specs()
@@ -112,17 +145,16 @@
         int iSheetId = -1;
         //--- if alread models are listed-up, skip
         if (string.IsNullOrWhiteSpace(strModel))
-        //if (strModel == null || strModel.Length < 2)
             return;
 
         gNumChannel = 4;
- 
+
         using (var db = new FimsDbContext())
         {
             var listCh = (from models in db.TspecModels
                           where models.ProductModel == strModel
                           select models.NumChannel).ToList();
- 
+
             if (listCh.Count > 0)
                 gNumChannel = (int)(listCh[0]);
 
@@ -157,6 +189,25 @@
                            select models.ProductModel).ToList();
         }
 
+    }
+
+
+        /* 모델 스펙 관리하기
+         *      모델 및 스펙 추가하기
+         *          1) SpecFile을 읽는다.
+         *          2) 각 모델에 대해,
+         *              - 기존에 모델이 없으면 추가한다. (SpecModel, SpecItems)
+         *              - 기존 모델이 있으면 SpecItem들을 모두 제거하고, 다시 추가한다. (SpecModel의 Id가 필요하다)
+         */
+    private void PopupModelManageWindow()
+    {
+        List_Models();
+        ModelAddWindowVisible = true;
+    }
+
+    void ModelAddVisibleChangedHandler(bool currVisible)
+    {
+        ModelAddWindowVisible = currVisible;
     }
 
 }

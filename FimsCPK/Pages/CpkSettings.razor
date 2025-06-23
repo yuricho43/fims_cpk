@@ -24,12 +24,18 @@
     모델 선택 ==> ModelChangeHandler
     ********************************************************************************************************@
     <CardHeader>
-        <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
-        <TelerikComboBox Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
-        Placeholder="Select Model..." ClearButton="true" Filterable="true">
-        </TelerikComboBox>
-        <strong style="margin-right:80px" />
-        <TelerikButton ThemeColor="primary" OnClick="ShowAddCpkItem" Enabled="@IsManager" Icon="@SvgIcon.Plus">Add Cpk Item</TelerikButton>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;모델:</label>
+            <TelerikComboBox @ref="@ComboBoxCpkModel" Data="@gModelNames" Width="200px" @bind-Value="@gTargetModel" OnChange="@ModelChangeHandler"
+            Placeholder="Select Model..." ClearButton="true" Filterable="true">
+            </TelerikComboBox>
+            <strong style="margin-right:80px" />
+            <TelerikButton ThemeColor="primary" OnClick="ShowAddCpkItem" Enabled="@IsManager" Icon="@SvgIcon.Plus">Add Cpk Item</TelerikButton>
+            <strong style="margin-right:80px" />
+            <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;추가할 Cpk모델:</label>
+            <TelerikTextBox @bind-Value="@gStrModelAdd" Width="200px" />
+            <TelerikButton ThemeColor="info" OnClick="AddCpkModel" Enabled="@IsManager" Icon="@SvgIcon.Plus">Add Cpk Model</TelerikButton>
+        </div>
     </CardHeader>
 
     @************************** PAGE BODY 구성 ***************************************************************
@@ -41,9 +47,6 @@
         <TelerikGrid Data=@gCpkItemsCL EditMode="@GridEditMode.Inline" Pageable="false" Height="500px"
         OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler">
             <GridToolBarTemplate>
-                @if (gLastSelectedModel.Length > 0)
-                {
-                }
             </GridToolBarTemplate>
             <GridColumns>
                 <GridColumn Field=@nameof(CpkItem.TestNo) Title="TestNo" Editable="false" />
@@ -113,8 +116,11 @@
     public bool AddCpkItemDialogVisible { get; set; } = false;
     private string curRole = "None";
     private bool IsManager { get; set; } = false;
+    private string gStrModelAdd { get; set; } = "";        // 추가할 cpkModel 이름
+    public TelerikComboBox<string, string> ComboBoxCpkModel { get; set; }
+
     //======================================================================
-    //--- 초기화: 관리 모델들 Listup. 최초 모델에 대해 LCL/UCL Listup 
+    //--- 초기화: 관리 모델들 Listup. 최초 모델에 대해 LCL/UCL Listup
     protected override async Task OnInitializedAsync()
     {
         curRole = await GetUserRole();
@@ -123,7 +129,7 @@
         List_Models();
     }
 
-    private async Task<string>  GetUserRole()
+    private async Task<string> GetUserRole()
     {
         string strRole = "None";
         var roles = await GetCurrentUserRolesAsync();
@@ -146,7 +152,7 @@
     }
 
     //======================================================================
-    //--- 모델 Listup. 
+    //--- 모델 Listup.
     private void List_Models()
     {
         gModelNames = cpkService.GetCpkModelNamesForSetting();
@@ -157,6 +163,8 @@
             gLastSelectedModel = gTargetModel;
             Get_Cpk_Items_For_Model(gTargetModel);
         }
+        ComboBoxCpkModel.Rebind();
+
     }
 
     //======================================================================
@@ -257,6 +265,9 @@
         await Get_Cpk_Items_For_Model(item.Model);
 
         Console.WriteLine("Delete event is fired.");
+        List_Models();
+
+
     }
 
     //======================================================================
@@ -268,8 +279,8 @@
         await ActivateConfirm("정말로 생성하시겠습니까 ?");
         if (gRetMessage == "N")
             return;
- 
-            // perform actual data source operation here through your service
+
+        // perform actual data source operation here through your service
         item.Model = gTargetModel;
         cpkService.CreateCpkItem(item);
 
@@ -296,6 +307,42 @@
 
         AddCpkItemDialogVisible = true;
     }
+
+    /// <summary>
+    /// - optional: 검사항목에는 있고, CpkItems에는 없는 모델 대상
+    /// - 1) 기존에 있는 모델인지 체크
+    ///   2) 해당 모델을 이용하여 하나의 Item 추가
+    ///      (이후는 기존 기능을 이용하여 Cpk 수정/추가/삭제)
+    ///   3) CpkItem을 모두 삭제하면 모델도 삭제됨
+    /// </summary>
+    private async void AddCpkModel()
+    {
+        if (string.IsNullOrWhiteSpace(gStrModelAdd))
+        {
+            Alert("추가할 모델 이름을 지정하세요.");
+            return;
+        }
+
+        if (gModelNames.Contains(gStrModelAdd) == true)
+        {
+            Alert("추가할 모델이 이미 존재 합니다.");
+            return;
+        }
+
+        //--- Add a dummy Cpk Item
+        CpkItem newCpk = new CpkItem();
+
+        newCpk.Model = gStrModelAdd;
+        newCpk.TestNo = 2009;
+        newCpk.Ch1Lcl = "20";
+        newCpk.Ch1Ucl = "22";
+        cpkService.CreateCpkItem(newCpk);
+
+        List_Models();
+
+        Alert(gStrModelAdd + "모델이 추가 되었습니다.");
+    }
+
 
     //======================================================================
     //--- CpkItems의 UCL/LCL을 USL/LSL을 기존으로 범위를 좁혀서 설정한다. (아직 미구현)
@@ -331,6 +378,13 @@
         gRetMessage = confirmed ? "Y" : "N";
     }
 
+    private async Task Alert(string message)
+    {
+        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
+    }
+
+
+
     //=== CpkItem 추가완료 후 처리 루틴: CpkItem 정보를 다시 가져와서 표시
     private async void OnAddUserFinished(NewCpkRegisterRequestModel newRegisterRequestModel)
     {
@@ -338,6 +392,5 @@
         Get_Cpk_Items_For_Model(gLastSelectedModel);
         StateHasChanged();
     }
-
 
 }

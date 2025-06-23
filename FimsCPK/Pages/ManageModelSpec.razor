@@ -1,0 +1,266 @@
+﻿@page "/managespec"
+
+@using FimsCPK.Models;
+@using FimsCPK.Services
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+@using ClosedXML.Excel;
+@using System.Data;
+@inject IJSRuntime JsRuntime
+@inject CpkService cpkService
+
+<AuthorizeView>
+    <Authorized>
+        <TelerikCard>
+            <CardHeader>
+                <h4>기존 모델 스펙 제거하기</h4>
+            </CardHeader>
+            <CardBody>
+                <div>
+                    <label for="myModel"> &nbsp;&nbsp;&nbsp;&nbsp;기존모델(@iCountExist):</label>
+                    <TelerikComboBox @ref="@ComboBoxExist"
+                    Data="@gExistingModels"
+                    Width="250px"
+                    @bind-Value="@gStringModelExist">
+                    </TelerikComboBox>
+                    <TelerikButton ThemeColor="warning" OnClick="@DeleteModel" Icon="FontIcon.Search">모델/스펙 제거하기</TelerikButton>
+                </div>
+            </CardBody>
+        </TelerikCard>
+        <br />
+        <br />
+        <TelerikCard>
+            <CardHeader>
+                <h4>기존 모델 스펙 추가하기</h4>
+            </CardHeader>
+            <CardBody>
+                <div>
+                    <TelerikButton ThemeColor="success" OnClick="@ReadExcelModel" Icon="FontIcon.Search">모델 엑셀파일 읽기</TelerikButton>
+                    (ExcelModel=@iCountNew)
+                    <label for="myModel2"> &nbsp;&nbsp;&nbsp;&nbsp;신규모델(@iCountAdded):</label>
+                    <TelerikComboBox @ref="@ComboBoxAdded"
+                    Data="@gAddedModelNames"
+                    Width="250px"
+                    @bind-Value="@gStringModelAdded">
+                    </TelerikComboBox>
+                    <TelerikButton ThemeColor="warning" Enabled="@IsAddEnabled" OnClick="@AddModel" Icon="FontIcon.Search">모델/스펙 추가하기</TelerikButton>
+                    <TelerikButton ThemeColor="primary" Enabled="@IsAddEnabled" OnClick="@InitializeModel" Icon="FontIcon.Search">모든 모델/스펙 최신화</TelerikButton>
+                    @gNumUpdatgedModel updated
+                </div>
+            </CardBody>
+
+        </TelerikCard>
+
+    </Authorized>
+</AuthorizeView>
+
+
+
+@code {
+    /* 모델 스펙 관리하기
+                *      모델 및 스펙 추가하기
+                *          1) SpecFile을 읽는다.
+                *          2) 각 모델에 대해,
+                *              - 기존에 모델이 없으면 추가한다. (SpecModel, SpecItems)
+                *              - 기존 모델이 있으면 SpecItem들을 모두 제거하고, 다시 추가한다. (SpecModel의 Id가 필요하다)
+                */
+
+    private List<string> gNewModelNames = new List<string>();
+    private List<string> gAddedModelNames = new List<string>();
+    private string gStringModelExist { get; set; } = "";
+    private string gStringModelAdded { get; set; } = "";
+    private int iCountExist = 0;
+    private int iCountNew = 0;
+    private int iCountAdded = 0;
+    public TelerikComboBox<string, string> ComboBoxExist { get; set; }
+    public TelerikComboBox<string, string> ComboBoxAdded { get; set; }
+
+    [Parameter] public List<string> gExistingModels { get; set; } = new List<string>();
+    private XLWorkbook workbook = new XLWorkbook();
+    private bool IsAddEnabled { get; set; } = false;
+    [CascadingParameter]
+    public DialogFactory Dialogs { get; set; }
+    public string gRetMessage { get; set; } = "N";
+
+    private int gNumUpdatgedModel { get; set; } = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        iCountExist = gExistingModels.Count;
+    }
+
+    private void ReadExcelModel()
+    {
+        //--- List Up 신규 모델
+        ReadMyExcel("\\Temp\\fims_spec.xlsx");
+
+        //--- Add Models & Specs
+        IsAddEnabled = true;
+    }
+
+    private void ReadMyExcel(string filePath)
+    {
+        workbook = new XLWorkbook(filePath);
+        iCountNew = workbook.Worksheets.Count;
+
+        var worksheet = workbook.Worksheet(1); // 첫 번째 시트
+        var dataTable = new DataTable();
+
+        //--- ModelNames
+        gNewModelNames.Clear();
+        foreach (var sheet in workbook.Worksheets)
+        {
+            gNewModelNames.Add(sheet.Name);
+        }
+
+        // 헤더 읽기
+        var headerRow = worksheet.FirstRowUsed();
+        foreach (var cell in headerRow.Cells())
+            dataTable.Columns.Add(cell.GetString());
+
+        // 데이터 읽기
+        int i = 0;
+        foreach (var row in worksheet.RowsUsed().Skip(1))
+        {
+            var dataRow = dataTable.NewRow();
+            int cnt = row.Cells().Count();
+            for (i = 0; i < 12; i++)   // 2~13 : Category~Example
+            {
+                string strTemp = row.Cell(i + 2)?.GetValue<string>();
+
+                if (row.Cell(i + 2) == null)
+                    dataRow[i] = "";
+                else
+                    dataRow[i] = row.Cell(i + 2)?.GetValue<string>();
+            }
+            dataTable.Rows.Add(dataRow);
+        }
+        ComboBoxExist.Rebind();
+
+        gAddedModelNames = gNewModelNames.Except(gExistingModels).ToList();
+
+        iCountAdded = gAddedModelNames.Count;
+        ComboBoxAdded.Rebind();
+
+    }
+    private List<TspecItem> GetSpecItemFromWorkSheet(string modelName)
+    {
+        List<TspecItem> listItem = new List<TspecItem>();
+
+        //--- find worksheet
+        int index = gNewModelNames.IndexOf(modelName);
+
+        if (index < 0)
+            return listItem;
+
+        int iRow = 2;
+
+        //--- Make TspecItem
+        var worksheet = workbook.Worksheet(index + 1); // 첫 번째 시트
+        try
+        {
+            foreach (var row in worksheet.RowsUsed().Skip(1))
+            {
+                var specitem = new TspecItem();
+                specitem.Category = row.Cell(2)?.GetValue<string>();
+                specitem.TestNo = row.Cell(3).GetValue<int>();
+                specitem.Title = row.Cell(4)?.GetValue<string>();
+                specitem.Unit = row.Cell(5)?.GetValue<string>();
+                specitem.Channels = row.Cell(6).GetValue<int>();
+                specitem.Applicable = row.Cell(7)?.GetValue<string>();
+                specitem.ExpressionMode = row.Cell(8)?.GetValue<string>();
+                specitem.Ch1Ucl = row.Cell(9)?.GetValue<string>();
+                specitem.Ch1Lcl = row.Cell(10)?.GetValue<string>();
+                specitem.Ch2Ucl = row.Cell(11)?.GetValue<string>();
+                specitem.Ch2Lcl = row.Cell(12)?.GetValue<string>();
+                specitem.Example = row.Cell(13)?.GetValue<string>();
+                listItem.Add(specitem);
+                iRow++;
+            }
+        }
+        catch (Exception ex)
+        {
+            Alert(modelName + " Spec Sheet에 오류가 있습니다.row=" + iRow.ToString());
+        }
+
+        return listItem;
+    }
+
+    private async void AddModel()
+    {
+        //--- 모델 이름이 지정되어야 한다.
+        if (string.IsNullOrWhiteSpace(gStringModelAdded))
+        {
+            Alert("추가할 모델을 선택하세요");
+            return;
+        }
+
+        //--- Add New Model Spec
+        List<TspecItem> listItem = GetSpecItemFromWorkSheet(gStringModelAdded);
+        cpkService.AddTSpecModel(gStringModelAdded, listItem);
+
+        Alert(gStringModelAdded + " 스펙이 추가 되었습니다.");
+    }
+
+    /// <summary>
+    /// TSpecModels, TSpecItems 초기화
+    /// </summary>
+    private async void InitializeModel()
+    {
+        await ActivateConfirm("정말로 모든 모델/스펙을 읽어들인 Excel File로 초기화 하겠습니까?\n시간이 많이 걸립니다.");
+        if (gRetMessage == "N")
+            return;
+
+        //--- Delete TSpecModels, TSpecItems
+        await cpkService.DeleteAllDataTSpecModel_Item();
+
+        //--- Add All Model Specs
+        foreach (string modelname in gNewModelNames)
+        {
+            List<TspecItem> listItem = GetSpecItemFromWorkSheet(modelname);
+            await cpkService.AddTSpecModel(modelname, listItem);
+            gNumUpdatgedModel++;
+            StateHasChanged();
+        }
+
+        Alert("모든 모델/스펙이 초기화 되었습니다.");
+
+    }
+    
+    private async void DeleteModel()
+    {
+        //--- 모델 이름이 지정되어야 한다.
+        if (string.IsNullOrWhiteSpace(gStringModelExist))
+        {
+            Alert("제거할 모델을 선택하세요");
+            return;
+        }
+
+        //--- Delete Model & Spec (TSpecModels, TSpecItems)
+        cpkService.DeleteTSpecModel(gStringModelExist);
+
+        Alert(gStringModelAdded + "스펙이 제거 되었습니다.");
+    }
+
+    private async Task Alert(string message)
+    {
+        await JsRuntime.InvokeVoidAsync("alert", message); // Alert
+    }
+
+    public async Task ActivateConfirm(string strMessage)
+    {
+        bool confirmed;
+        if (string.IsNullOrWhiteSpace("CPK Settings"))
+        {
+            confirmed = await Dialogs.ConfirmAsync(strMessage);
+        }
+        else
+        {
+            confirmed = await Dialogs.ConfirmAsync(strMessage, "CPK Settings");
+        }
+
+        gRetMessage = confirmed ? "Y" : "N";
+    }
+
+}

@@ -2,6 +2,8 @@
 using FimsCPK.Data;
 using System.Globalization;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace FimsCPK.Services
 { 
@@ -9,8 +11,9 @@ namespace FimsCPK.Services
     {
         private readonly string _storagePath = Path.Combine(Directory.GetCurrentDirectory(), "UserConfigures");
         private readonly HttpClient _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserConfigureService(HttpClient httpClient)
+        public UserConfigureService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
         {
             // 설정 파일을 저장할 디렉토리가 없으면 생성
             if (!Directory.Exists(_storagePath))
@@ -18,6 +21,7 @@ namespace FimsCPK.Services
                 Directory.CreateDirectory(_storagePath);
             }
             _httpClient = httpClient;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<UserConfiguration> LoadUserConfigAsync(string userId)
@@ -73,6 +77,24 @@ namespace FimsCPK.Services
 
             return null;
         }
+
+        //--- 25.6.23
+        public List<string> GetCurrentUserRoles()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                // ClaimTypes.Role 또는 "role"로 가져올 수 있습니다
+                return user.Claims
+                    .Where(c => c.Type == ClaimTypes.Role || c.Type == "role")
+                    .Select(c => c.Value)
+                    .ToList();
+            }
+
+            return new List<string>();
+        }
+
 
     }
 }

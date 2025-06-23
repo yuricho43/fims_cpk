@@ -1,0 +1,46 @@
+﻿@page "/excel"
+
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+
+@using ClosedXML.Excel;
+@using System.Data;
+
+<TelerikButton ThemeColor="success" OnClick="@ReadMyExcel" Icon="FontIcon.Search">Excel Read</TelerikButton>&nbsp;&nbsp;&nbsp;&nbsp;
+
+@code {
+
+    private void ReadMyExcel()
+    {
+        string filePath = "\\Temp\\fims_spec.xlsx";
+        using var workbook = new XLWorkbook(filePath);
+        var worksheet = workbook.Worksheet(1); // 첫 번째 시트
+        var dataTable = new DataTable();
+
+        // 헤더 읽기
+        var headerRow = worksheet.FirstRowUsed();
+        foreach (var cell in headerRow.Cells())
+            dataTable.Columns.Add(cell.GetString());
+
+        // 데이터 읽기
+        int i = 0;
+        foreach (var row in worksheet.RowsUsed().Skip(1))
+        {
+            var dataRow = dataTable.NewRow();
+            int cnt = row.Cells().Count();
+            for (i = 0; i < 12; i++)   // 2~13 : Category~Example 
+            {
+                string strTemp = row.Cell(i+2)?.GetValue<string>();
+
+                if (row.Cell(i+2) == null)
+                    dataRow[i] = "";
+                else
+                    dataRow[i] = row.Cell(i + 2)?.GetValue<string>();
+            }
+            dataTable.Rows.Add(dataRow);
+        }
+
+    }
+
+}

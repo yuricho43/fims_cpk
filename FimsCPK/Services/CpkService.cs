@@ -1,4 +1,5 @@
-﻿using FimsCPK.Data;
+﻿using DocumentFormat.OpenXml.InkML;
+using FimsCPK.Data;
 using FimsCPK.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -162,7 +163,7 @@ namespace FimsCPK.Services
         {
             int idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(p => p.Id).FirstOrDefault();
             if (idModel <= 0)
-                idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel.Contains(strModel)==true).Select(p => p.Id).FirstOrDefault();
+                idModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel.Contains(strModel) == true).Select(p => p.Id).FirstOrDefault();
 
             List<TspecItem> tCpkItemsSL = _dbFimsContext.TspecItems.Where(x => idModel == x.TspecModelId && listTestNo.Contains(x.TestNo)).ToList();
             foreach (var item in tCpkItemsSL)
@@ -190,7 +191,7 @@ namespace FimsCPK.Services
             }
             */
 
-            List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model==strModel).OrderBy(x=>x.TestNo).ToList();
+            List<CpkItem> tCpkItemsCL = _dbFimsContext.CpkItems.Where(x => x.Model == strModel).OrderBy(x => x.TestNo).ToList();
             foreach (var item in tCpkItemsCL)
             {
                 item.Reserved1 = _dbFimsContext.TspecItems.Where(x => x.TestNo == item.TestNo).Select(p => p.Title).FirstOrDefault();
@@ -336,11 +337,12 @@ namespace FimsCPK.Services
                     return -1;      // already exist
 
                 CreateCpkItemFromForm(newItem);
-            } else
+            }
+            else
             {
                 List<string> listModels = GetCpkModelNamesForSetting();
 
-                foreach(string modelname in listModels)
+                foreach (string modelname in listModels)
                 {
                     newItem.ModelName = modelname;
                     var result = _dbFimsContext.CpkItems.Where(n => n.TestNo == newItem.iTestNo && n.Model == newItem.ModelName).FirstOrDefault();
@@ -354,6 +356,75 @@ namespace FimsCPK.Services
         }
 
 
+        /// <summary>
+        /// 1) Get Id for selected Model
+        //  2) Delete TSpecModel
+        //  3) Delete TSpecItems
+        /// </summary>
+        /// <param name="strModel"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteTSpecModel(string strModel)
+        {
+            int IdModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(y => y.Id).FirstOrDefault();
+            if (IdModel == 0)
+                return -1;  // nothing found
 
+            var modelToDelete = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).ToList();
+            _dbFimsContext.TspecModels.RemoveRange(modelToDelete);
+            _dbFimsContext.SaveChanges();
+
+            var itemToDelete = _dbFimsContext.TspecItems.Where(x => x.TspecModelId == IdModel).ToList();
+            _dbFimsContext.TspecItems.RemoveRange(itemToDelete);
+            _dbFimsContext.SaveChanges();
+
+            return 1;
+        }
+
+        public async Task DeleteAllDataTSpecModel_Item()
+        {
+            var modelToDelete = _dbFimsContext.TspecModels.ToList();
+            _dbFimsContext.TspecModels.RemoveRange(modelToDelete);
+            _dbFimsContext.SaveChanges();
+
+            var itemToDelete = _dbFimsContext.TspecItems.ToList();
+            _dbFimsContext.TspecItems.RemoveRange(itemToDelete);
+            _dbFimsContext.SaveChanges();
+        }
+        /// <summary>
+        ///  1) Model 이름이 존재하는지 체크
+        ///  2) TSpecModel 추가
+        ///  3) TSpecItem 추가
+        /// </summary>
+        /// <param name="strModel"></param>
+        /// <returns></returns>
+        public async Task<int> AddTSpecModel(string strModel, List<TspecItem> items)
+        {
+            int IdModel = _dbFimsContext.TspecModels.Where(x => x.ProductModel == strModel).Select(y => y.Id).FirstOrDefault();
+            if (IdModel > 0)
+                return -1;  //already Exist
+
+            //--- Add SpecModel
+            var nsm = new TspecModel()
+            {
+                ProductModel = strModel,
+                NumChannel = 10,
+                CreatorName = "조용섭",
+                CreatedOn = DateTime.Now,
+            };
+
+            _dbFimsContext.TspecModels.Add(nsm);
+            _dbFimsContext.SaveChanges();
+
+            //--- Add Spec Item
+            int newId = nsm.Id;
+            foreach (var item in items)
+            {
+                item.TspecModelId = newId;
+                _dbFimsContext.TspecItems.Add(item);
+            }
+            _dbFimsContext.SaveChanges();
+
+            return 1;
+        }
     }
 }
