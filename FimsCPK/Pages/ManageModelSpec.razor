@@ -32,7 +32,7 @@
         <br />
         <TelerikCard>
             <CardHeader>
-                <h4>기존 모델 스펙 추가하기</h4>
+                <h4>모델 스펙 추가/초기화 하기</h4>
             </CardHeader>
             <CardBody>
                 <div>
@@ -93,7 +93,7 @@
     private void ReadExcelModel()
     {
         //--- List Up 신규 모델
-        ReadMyExcel("\\Temp\\fims_spec.xlsx");
+        ReadMyExcel("/tmp/FimsSpec.xlsx");
 
         //--- Add Models & Specs
         IsAddEnabled = true;
