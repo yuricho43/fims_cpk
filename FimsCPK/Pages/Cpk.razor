@@ -296,7 +296,7 @@
                                 <h4 style="color:green"><strong>정규분포 : @gTargetModel&nbsp-@gTargetNumber</strong></h4>
                             </HeaderTemplate>
                             <Content>
-                                <TelerikChart Height="100%" Width="100%" @ref="theChart">
+                                <TelerikChart Height="96%" Width="100%" @ref="theChart">
                                     <ChartTooltip Visible="false" Shared="true"></ChartTooltip>
                                     <ChartLegend Visible="false"></ChartLegend>
                                     <ChartSeriesItems>
@@ -315,7 +315,7 @@
                                         </ChartSeries>
                                     </ChartSeriesItems>
 
-                                    <ChartTitle Text="@gTargetModel" Description="Product Sales by Year and Country">
+                                    <ChartTitle Text="@gTargetModel">
                                         <ChartSubtitle Text="@gNormalSubtitle"></ChartSubtitle>
                                     </ChartTitle>
 
@@ -334,6 +334,7 @@
                                     </ChartCategoryAxes>
 
                                 </TelerikChart>
+                                <h6 style="color:blue"><strong>@gNormalSubtitle</strong></h6>
                             </Content>
                         </TileLayoutItem>
 
@@ -342,7 +343,7 @@
                                 <h5 style="color:green"><strong>X-R 관리도: @gTargetModel&nbsp-@gTargetNumber</strong></h5>
                             </HeaderTemplate>
                             <Content>
-                                <TelerikChart Height="100%" Width="100%" @ref="theChartXR">
+                                <TelerikChart Height="96%" Width="100%" @ref="theChartXR">
                                     <ChartLegend Visible="false"></ChartLegend>
                                     <ChartSeriesItems>
                                         @{
@@ -410,7 +411,7 @@
                                         }
                                     </ChartSeriesItems>
 
-                                    <ChartTitle Text="@gTargetModel" Description="XR graph">
+                                    <ChartTitle Text="@gTargetModel">
                                         <ChartSubtitle Text="@gNormalSubtitle"></ChartSubtitle>
                                     </ChartTitle>
 
@@ -444,6 +445,7 @@
                                     </ChartValueAxes>
 
                                 </TelerikChart>
+                                <h6 style="color:blue"><strong>@gNormalSubtitle</strong></h6>
                             </Content>
                         </TileLayoutItem>
 
