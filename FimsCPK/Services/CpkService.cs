@@ -163,6 +163,7 @@ namespace FimsCPK.Services
                 itemNew.Ch1Data = itemUpdate.Ch1Data;
                 itemNew.Ch2Data = itemUpdate.Ch2Data;
                 itemNew.Ch3Data = itemUpdate.Ch3Data;
+                itemNew.ModifiedOn = DateTime.Now;
                 //--- Update
                 _dbFimsContext.Entry(itemDb).CurrentValues.SetValues(itemNew);
                 _dbFimsContext.SaveChanges();
