@@ -1,10 +1,16 @@
 ﻿@page "/sndata"
 
+@using FimsCPK.Entities
 @using FimsCPK.Models;
+@using FimsCPK.Services
+@using Microsoft.AspNetCore.Identity
 @using Telerik.DataSource
 @using Telerik.DataSource.Extensions
 @using Telerik.FontIcons;
 @using Telerik.SvgIcons;
+@inject CpkService cpkService
+@inject UserManager<AspNetUser> _userManager
+@inject IHttpContextAccessor _httpContextAccessor
 @inject IJSRuntime JsRuntime
 
 <PageTitle>Fims Dashboard</PageTitle>
@@ -55,7 +61,10 @@
         FilterMode="GridFilterMode.FilterMenu"
         Resizable="true"
         Reorderable="true"
-        EditMode="GridEditMode.Popup"
+        EditMode="GridEditMode.Inline"
+        OnUpdate="@UpdateHandler" 
+        OnEdit="@EditHandler" 
+        OnCancel="@CancelHandler"
         PageSize=@gPageSize
         Navigable="true"
         Height="100%">
@@ -76,18 +85,26 @@
             </GridExport>
 
             <GridColumns>
-                <GridColumn Field=@nameof(Titem.TestNo) Width="30px" Title="테스트번호" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Category) Width="60px" Title="대분류" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Title) Width="30px" Title="검사항목" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Unit) Width="30px" Title="단위" Sortable=true />
-                <GridColumn Field=@nameof(Titem.Channels) Width="30px" Title="#CH" Sortable=true />
-                <GridColumn Field=@nameof(Titem.ExpressionMode) Width="30px" Title="표현방식" Sortable=true />
+                <GridColumn Field=@nameof(Titem.TestNo) Width="30px" Title="테스트번호" Sortable=true Editable="false" />
+                <GridColumn Field=@nameof(Titem.Category) Width="60px" Title="대분류" Sortable=true Editable="false" />
+                <GridColumn Field=@nameof(Titem.Title) Width="30px" Title="검사항목" Sortable=true Editable="false" />
+                <GridColumn Field=@nameof(Titem.Unit) Width="30px" Title="단위" Sortable=true Editable="false" />
+                <GridColumn Field=@nameof(Titem.Channels) Width="30px" Title="#CH" Sortable=true Editable="false" />
+                <GridColumn Field=@nameof(Titem.ExpressionMode) Width="30px" Title="표현방식" Sortable=true Editable="false" />
                 <GridColumn Field=@nameof(Titem.Ch1Data) Width="30px" Title="CH1값" Sortable=true />
                 <GridColumn Field=@nameof(Titem.Ch2Data) Width="30px" Title="CH2값" Sortable=true />
                 <GridColumn Field=@nameof(Titem.Ch3Data) Width="30px" Title="CH3값" Sortable=true />
                 @*
                 <GridColumn Field=@nameof(Titem.CreatedOn) Width="30px" Title="생성일" Sortable=true />
                 *@
+                @if (IsManager == true)
+                {
+                    <GridCommandColumn Width="30px">
+                        <GridCommandButton Command="Save" Icon="@SvgIcon.Save" ShowInEdit="true">Update</GridCommandButton>
+                        <GridCommandButton Command="Edit" Icon="@SvgIcon.Pencil" Enabled="@IsManager">Edit</GridCommandButton>
+                        <GridCommandButton Command="Cancel" Icon="@SvgIcon.Cancel" ShowInEdit="true">Cancel</GridCommandButton>
+                    </GridCommandColumn>
+                }
             </GridColumns>
 
         </TelerikGrid>
@@ -105,8 +122,19 @@
     public int gPageSize = 100;
     bool ExportAllPages { get; set; }
 
+    //--- For Editing Result
+    [CascadingParameter]
+    public DialogFactory Dialogs { get; set; }
+    public string gRetMessage { get; set; } = "N";
+    private bool IsManager { get; set; } = false;
+    private string curRole = "None";
+
+
     protected override async Task OnInitializedAsync()
     {
+        curRole = await GetUserRole();
+        if (curRole.Contains("Admin"))
+            IsManager = true;
         Retrieve_TestData_For_Serial();
     }
 
@@ -143,6 +171,87 @@
             gCounter = gItemList.Count();
 
         }
+    }
+
+    //======================================================================
+    //--- Edit Handler : Nothing to do
+    void EditHandler(GridCommandEventArgs args)
+    {
+        if (IsManager == false)
+            return;
+
+        Titem item = (Titem)args.Item;
+        Console.WriteLine("Edit event is fired.");
+    }
+
+    //======================================================================
+    //--- Update LCL/UCL
+    async Task UpdateHandler(GridCommandEventArgs args)
+    {
+        if (IsManager == false)
+            return;
+
+        Titem item = (Titem)args.Item;
+
+        await ActivateConfirm("정말로 수정하시겠습니까 ?");
+        if (gRetMessage == "N")
+            return;
+
+        // perform actual data source operations here through your service
+        cpkService.UpdateInspectionItem(item);
+
+        // update the local view-model data with the service data
+        //await Get_Cpk_Items_For_Model(item.Model);
+
+        Retrieve_TestData_For_Serial();
+        StateHasChanged();
+        Console.WriteLine("Update event is fired.");
+    }
+
+    //======================================================================
+    //--- Cancel Handler : Nothing to do
+    async Task CancelHandler(GridCommandEventArgs args)
+    {
+        // if necessary, perform actual data source operation here through your service
+        Console.WriteLine("Cancel event is fired.");
+    }
+
+    //===========================================================
+    private async Task<string> GetUserRole()
+    {
+        string strRole = "None";
+        var roles = await GetCurrentUserRolesAsync();
+        if (roles.Count > 0)
+            strRole = roles[0];
+        return strRole;
+    }
+
+    public async Task<IList<string>> GetCurrentUserRolesAsync()
+    {
+        // 현재 로그인한 사용자 확인
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            return new List<string>();
+        }
+
+        // 사용자의 역할 반환
+        return await _userManager.GetRolesAsync(user);
+    }
+
+    public async Task ActivateConfirm(string strMessage)
+    {
+        bool confirmed;
+        if (string.IsNullOrWhiteSpace("Item Editing"))
+        {
+            confirmed = await Dialogs.ConfirmAsync(strMessage);
+        }
+        else
+        {
+            confirmed = await Dialogs.ConfirmAsync(strMessage, "Item Editing");
+        }
+
+        gRetMessage = confirmed ? "Y" : "N";
     }
 
     private async Task Alert(string message)

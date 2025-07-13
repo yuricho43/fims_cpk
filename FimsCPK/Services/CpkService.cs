@@ -116,7 +116,7 @@ namespace FimsCPK.Services
             var cpkItem = _dbFimsContext.CpkItems.FirstOrDefault(p => p.Id == cpkDto.Id);
 
             if (cpkItem is null)
-                return "There is no such a CpkItem"; ;
+                return "There is no such a CpkItem";
 
             try
             {
@@ -143,8 +143,39 @@ namespace FimsCPK.Services
             {
                 throw;
             }
-            return "Update failed"; ;
+            return "Update failed";
         }
+
+        public string UpdateInspectionItem(Titem itemUpdate)
+        {
+            //--- get CpkItem
+            var itemDb = _dbFimsContext.Titems.FirstOrDefault(p => p.Id == itemUpdate.Id);
+
+            if (itemDb is null)
+                return "There is no such a TItem";
+
+            try
+            {
+                //--- Set to new value
+                Titem itemNew = new Titem();
+                itemNew = itemDb;
+
+                itemNew.Ch1Data = itemUpdate.Ch1Data;
+                itemNew.Ch2Data = itemUpdate.Ch2Data;
+                itemNew.Ch3Data = itemUpdate.Ch3Data;
+                //--- Update
+                _dbFimsContext.Entry(itemDb).CurrentValues.SetValues(itemNew);
+                _dbFimsContext.SaveChanges();
+
+                return "Updated successfully";
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            return "Update failed";
+        }
+
 
         public string DeleteCpkItem(string Model, int TestNo)
         {
