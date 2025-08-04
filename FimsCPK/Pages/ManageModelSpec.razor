@@ -12,6 +12,9 @@
 
 <AuthorizeView>
     <Authorized>
+        <div class="my-mockup-layout">
+            <TelerikLoaderContainer LoaderPosition="@LoaderPosition.Start" Visible="@LoaderVisible"></TelerikLoaderContainer>
+        </div>
         <TelerikCard>
             <CardHeader>
                 <h4>기존 모델 스펙 제거하기</h4>
@@ -84,22 +87,34 @@
     public string gRetMessage { get; set; } = "N";
 
     private int gNumUpdatgedModel { get; set; } = 0;
+    //==================================================
+    // Loader
+    private bool LoaderVisible = false;
+
 
     protected override async Task OnInitializedAsync()
     {
         iCountExist = gExistingModels.Count;
     }
 
-    private void ReadExcelModel()
+    private async Task ReadExcelModel()
     {
+        LoaderVisible = true;
+        await Task.Delay(100);
+
         //--- List Up 신규 모델
-        ReadMyExcel("/tmp/FimsSpec.xlsx");
+        string strFile = "/tmp/FimsSpec.xlsx";
+        await ReadMyExcel(strFile);
 
         //--- Add Models & Specs
         IsAddEnabled = true;
+        LoaderVisible = false;
+
+        string strMsg = strFile + " 에서 " + iCountNew.ToString() + " 모델스펙 sheet를 읽었습니다.";
+        await Dialogs.AlertAsync(strMsg);
     }
 
-    private void ReadMyExcel(string filePath)
+    private async Task ReadMyExcel(string filePath)
     {
         workbook = new XLWorkbook(filePath);
         iCountNew = workbook.Worksheets.Count;
@@ -141,6 +156,7 @@
         gAddedModelNames = gNewModelNames.Except(gExistingModels).ToList();
 
         iCountAdded = gAddedModelNames.Count;
+
         ComboBoxAdded.Rebind();
 
     }
