@@ -99,19 +99,46 @@
 
     private async Task ReadExcelModel()
     {
+        string strMsg = "";
+
+        //--- List Up 신규 모델
+        // string strFile = "/tmp/FimsSpec.xlsx";
+        string strFile = GetSpecFileName();
+        if (File.Exists(strFile) == false)
+        {
+            strMsg = "Spec File (" + strFile + ") 이 존재하지 않습니다.";
+            await Dialogs.AlertAsync(strMsg);
+            return;
+        }
+
         LoaderVisible = true;
         await Task.Delay(100);
 
-        //--- List Up 신규 모델
-        string strFile = "/tmp/FimsSpec.xlsx";
         await ReadMyExcel(strFile);
 
         //--- Add Models & Specs
         IsAddEnabled = true;
         LoaderVisible = false;
 
-        string strMsg = strFile + " 에서 " + iCountNew.ToString() + " 모델스펙 sheet를 읽었습니다.";
+        strMsg = strFile + " 에서 " + iCountNew.ToString() + " 모델스펙 sheet를 읽었습니다.";
         await Dialogs.AlertAsync(strMsg);
+    }
+
+    private string GetSpecFileName()
+    {
+        string strFilename = "";
+        string directoryPath = "/home/fims/FIMS-REPO/FimsTSheetSpecsRepository";
+        List<string> lstFiles = new List<string>();
+
+        if (Directory.Exists(directoryPath))
+        {
+            lstFiles = Directory.GetFiles(directoryPath).ToList();
+
+            strFilename = lstFiles.Where(f => !f.Contains("BACKUP")).FirstOrDefault();
+            strFilename = Path.Combine(directoryPath, strFilename);
+        }
+
+        return strFilename;
     }
 
     private async Task ReadMyExcel(string filePath)
@@ -197,7 +224,7 @@
         }
         catch (Exception ex)
         {
-            Alert(modelName + " Spec Sheet에 오류가 있습니다.row=" + iRow.ToString());
+            // Alert(modelName + " Spec Sheet에 오류가 있습니다.row=" + iRow.ToString());
         }
 
         return listItem;
@@ -224,9 +251,12 @@
     /// </summary>
     private async void InitializeModel()
     {
-        await ActivateConfirm("정말로 모든 모델/스펙을 읽어들인 Excel File로 초기화 하겠습니까?\n시간이 많이 걸립니다.");
+        await ActivateConfirm("정말로 모든 모델/스펙을 읽어들인 Excel File로 초기화 하겠습니까?\n시간이 많이 (2분~5분) 걸립니다.");
         if (gRetMessage == "N")
             return;
+
+        LoaderVisible = true;
+        await Task.Delay(100);
 
         //--- Delete TSpecModels, TSpecItems
         await cpkService.DeleteAllDataTSpecModel_Item();
@@ -240,7 +270,10 @@
             StateHasChanged();
         }
 
-        Alert("모든 모델/스펙이 초기화 되었습니다.");
+        LoaderVisible = false;
+
+        int iCount = gNewModelNames.Count;
+        Alert(iCount.ToString() + " 모델/스펙이 초기화 되었습니다.");
 
     }
     
