@@ -941,13 +941,13 @@
             {
                 // LCL/UCL을 사용하여 cpk 계산하려면 comment를 풀어야 한다.
 
-                dlc = double.Parse(record.lcl ?? "0");
-                duc = double.Parse(record.ucl ?? "0");
+                dl = double.Parse(record.lcl ?? "0");
+                du = double.Parse(record.ucl ?? "0");
 
-                gChLcl[ix] = dlc - dspan;
-                gChUcl[ix] = duc - dspan;
-                gChLcl2[ix] = dlc + dspan;
-                gChUcl2[ix] = duc + dspan;
+                gChLcl[ix] = dl - dspan;
+                gChUcl[ix] = du - dspan;
+                gChLcl2[ix] = dl + dspan;
+                gChUcl2[ix] = du + dspan;
 
                 //--- cpk, cp 계산
                 //    Cp = (UCL-LCL)/(6*표준편차)
