@@ -132,19 +132,19 @@
                                     <GridColumns>
                                         <GridColumn Field=@nameof(CPK_Statistics.name) Width="30px" Title="Channel" Sortable=true />
                                         <GridColumn Field=@nameof(CPK_Statistics.num) Width="30px" Title="검사수" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.average) Width="30px" Title="평균" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" HeaderClass="k-justify-content-center demo-font-weight-bold" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.stddev) Width="30px" Title="표준편차" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.min) Width="30px" Title="최소값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.max) Width="30px" Title="최대값" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.average) Width="30px" Title="평균" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" HeaderClass="k-justify-content-center demo-font-weight-bold" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.stddev) Width="30px" Title="표준편차" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.min) Width="30px" Title="최소값" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.max) Width="30px" Title="최대값" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.numGood) Width="30px" Title="양품수" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.cp) Width="30px" Title="Cp" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.k) Width="30px" Title="k" DisplayFormat="{0:0.00000}" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.cpk) Width="30px" Title="Cpk" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right"
+                                        <GridColumn Field=@nameof(CPK_Statistics.cp) Width="30px" Title="Cp" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.k) Width="30px" Title="k" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.cpk) Width="30px" Title="Cpk" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right"
                                         OnCellRender="@OnCellRenderHandler" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.lcl) Width="30px" Title="LCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.ucl) Width="30px" Title="UCL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.lsl) Width="30px" Title="LSL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.usl) Width="30px" Title="USL" DisplayFormat="{0:0.00}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.lcl) Width="30px" Title="LCL" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.ucl) Width="30px" Title="UCL" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.lsl) Width="30px" Title="LSL" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.usl) Width="30px" Title="USL" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
                                     </GridColumns>
                                     <GridToolBarTemplate>
                                         <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">엑셀 출력</GridCommandButton>
@@ -955,7 +955,7 @@
                 gChUcl2[ix] = duc + dspan;
 
                 //--- cpk, cp 계산
-                //    Cp = (UCL-LCL)/(6*표준편차)
+                //    Cp = (USL-LSL)/(6*표준편차)
                 //    Cpk = MIN( (평균-LSL)/(3*표준편차), (USL-평균)/(3*표준편차))
                 record.cp = (du - dl) / (6 * record.stddev);
 
