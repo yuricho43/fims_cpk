@@ -133,7 +133,7 @@
                                         <GridColumn Field=@nameof(CPK_Statistics.name) Width="30px" Title="Channel" Sortable=true />
                                         <GridColumn Field=@nameof(CPK_Statistics.num) Width="30px" Title="검사수" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.average) Width="30px" Title="평균" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" HeaderClass="k-justify-content-center demo-font-weight-bold" />
-                                        <GridColumn Field=@nameof(CPK_Statistics.stddev) Width="30px" Title="표준편차" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
+                                        <GridColumn Field=@nameof(CPK_Statistics.stddev) Width="30px" Title="표준편차" DisplayFormat="{0:F6}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.min) Width="30px" Title="최소값" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.max) Width="30px" Title="최대값" DisplayFormat="{0:F2}" TextAlign="@ColumnTextAlign.Right" />
                                         <GridColumn Field=@nameof(CPK_Statistics.numGood) Width="30px" Title="양품수" TextAlign="@ColumnTextAlign.Right" />
@@ -684,7 +684,10 @@
         gTestNumbers.Clear();
         using (var db = new FimsDbContext())
         {
-            var lists = db.CpkItems.Where(n => gLastSelectedModel.Contains(n.Model) == true).OrderBy(n => n.TestNo).Select(p => p.TestNo).ToList();
+            //var lists = db.CpkItems.Where(n => gLastSelectedModel.Contains(n.Model) == true).OrderBy(n => n.TestNo).Select(p => p.TestNo).ToList();
+            var lists = db.CpkItems.Where(n => gLastSelectedModel == n.Model).OrderBy(n => n.TestNo).Select(p => p.TestNo).ToList();
+            if (lists == null || lists.Count == 0)
+                lists = db.CpkItems.Where(n => gLastSelectedModel.Contains(n.Model) == true).OrderBy(n => n.TestNo).Select(p => p.TestNo).ToList();
 
             List<int> temp = lists.ToList();
             if (temp.Count() <= 0)
