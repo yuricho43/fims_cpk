@@ -3,6 +3,8 @@ using FimsCPK.Data;
 using FimsCPK.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using Telerik.SvgIcons;
 using static FimsCPK.Pages.Home;
 using static Telerik.Blazor.ThemeConstants;
 
@@ -457,6 +459,106 @@ namespace FimsCPK.Services
             _dbFimsContext.SaveChanges();
 
             return 1;
+        }
+
+        /// <summary>
+        ///     1) TestNo=3026(투입량)이 있는 검사 Sheet에서 정보를 뽑아 온다.
+        ///     2) TestNo=3009(Coolant종류), 7857 (drain1), 8025 (drain2)값을 가져온다.
+        ///     3) s/n, model, 검사시작, 검사완료 정보를 TSheet에서 가져온다.
+        ///     
+        ///     TestNo=3026이 있는 TSheetNum을 구한다.
+        ///     각 TSheetNum에 대하여 3009, 7857, 8025 를 List를 구한다.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public List<CoolantInfo> GetCoolantInfoFromFIMS(DateTime start, DateTime end)
+        {
+            List<CoolantInfo> coolantInfos = new List<CoolantInfo>();
+            List<int> sheets = new List<int>();
+            List<Titem> items = new List<Titem>();
+            // sheets = _dbFimsContext.Titems.Where(x => x.TestNo == 3026).Select(t => t.TsheetId).ToList();
+            sheets = _dbFimsContext.Tsheets.Where(x => x.InspectionEndDateTime >= start && x.InspectionEndDateTime < end).Select(t => t.Id).ToList();
+            items = _dbFimsContext.Titems.Where(x => sheets.Contains(x.TsheetId) == true && 
+                            (x.TestNo == 3026 || x.TestNo == 3009 || x.TestNo == 7857 || x.TestNo == 8025)).OrderBy(p=>p.TsheetId).ToList();
+
+            for (int i = 0; i < sheets.Count; i++)
+            {
+                try
+                {
+                    int idS = 0;
+                    if (i == 39)
+                    {
+                        idS++;
+                    }
+                    CoolantInfo ci = new CoolantInfo();
+                    idS = sheets[i];
+                    List<Titem> tmpItems = items.Where(x => x.TsheetId == sheets[i]).ToList();
+                    if (tmpItems.Count <= 0)
+                        continue;
+
+                    ci.model = _dbFimsContext.Tsheets.FirstOrDefault(x => x.Id == sheets[i]).ProductModel;
+                    ci.serial = _dbFimsContext.Tsheets.FirstOrDefault(x => x.Id == sheets[i]).ProductSerial;
+                    ci.dateStarted = _dbFimsContext.Tsheets.FirstOrDefault(x => x.Id == sheets[i]).InspectionStartDateTime;
+                    ci.dateEnded = _dbFimsContext.Tsheets.FirstOrDefault(x => x.Id == sheets[i]).InspectionEndDateTime;
+                    ci.NumCh = tmpItems[0].Channels;
+                    ci.coolantname1 = tmpItems.Where(x => x.TestNo == 3009).Select(t => t.Ch1Data).FirstOrDefault();
+                    ci.coolantcharge1 = GetFloatValue(tmpItems.Where(x => x.TestNo == 3026).FirstOrDefault(), 1);
+                    ci.coolantdrain11 = GetFloatValue(tmpItems.Where(x => x.TestNo == 7857).FirstOrDefault(), 1);
+                    ci.coolantdrain12 = GetFloatValue(tmpItems.Where(x => x.TestNo == 8025).FirstOrDefault(), 1);
+                    ci.coolantname2 = tmpItems.Where(x => x.TestNo == 3009).Select(t => t.Ch2Data).FirstOrDefault();
+                    ci.coolantcharge2 = GetFloatValue(tmpItems.Where(x => x.TestNo == 3026).FirstOrDefault(), 2);
+                    ci.coolantdrain21 = GetFloatValue(tmpItems.Where(x => x.TestNo == 7857).FirstOrDefault(), 2);
+                    ci.coolantdrain22 = GetFloatValue(tmpItems.Where(x => x.TestNo == 8025).FirstOrDefault(), 2);
+                    ci.coolantname3 = tmpItems.Where(x => x.TestNo == 3009).Select(t => t.Ch3Data).FirstOrDefault();
+                    ci.coolantcharge3 = GetFloatValue(tmpItems.Where(x => x.TestNo == 3026).FirstOrDefault(), 3);
+                    ci.coolantdrain31 = GetFloatValue(tmpItems.Where(x => x.TestNo == 7857).FirstOrDefault(), 3);
+                    ci.coolantdrain32 = GetFloatValue(tmpItems.Where(x => x.TestNo == 8025).FirstOrDefault(), 3);
+                    ci.coolantname4 = tmpItems.Where(x => x.TestNo == 3009).Select(t => t.Ch4Data).FirstOrDefault();
+                    ci.coolantcharge4 = GetFloatValue(tmpItems.Where(x => x.TestNo == 3026).FirstOrDefault(), 4);
+                    ci.coolantdrain41 = GetFloatValue(tmpItems.Where(x => x.TestNo == 7857).FirstOrDefault(), 4);
+                    ci.coolantdrain42 = GetFloatValue(tmpItems.Where(x => x.TestNo == 8025).FirstOrDefault(), 4);
+                    coolantInfos.Add(ci);
+                }
+                catch (Exception ex)
+                {
+                    int kk = 0;
+
+                    kk++;
+                }
+            }
+            return coolantInfos;
+        }
+
+        private double GetFloatValue(Titem item, int iCh)
+        {
+            double fValue = 0.0;
+            if (item != null)
+            {
+                string sValue = "";
+                if (iCh == 1)
+                {
+                    sValue = item.Ch1Data;
+                } else if (iCh == 2)
+                {
+                    sValue = item.Ch2Data;
+                }
+                else if (iCh == 3)
+                {
+                    sValue = item.Ch3Data;
+                }
+                else if (iCh == 4)
+                {
+                    sValue = item.Ch4Data;
+                }
+                else
+                {
+                    return fValue;
+                }
+                fValue = Convert.ToDouble(sValue);
+            }
+
+            return fValue;
         }
     }
 }
