@@ -27,10 +27,14 @@
                     <TelerikButton ThemeColor="success" OnClick="@SearchDevices" Icon="FontIcon.Search">검색하기</TelerikButton>
                     <div style="margin-right:20px"></div>
                     <h4><strong>장비수=@gNumDevices</strong></h4>
+                    <div style="margin-right:100px"></div>
+                    <TelerikButton ThemeColor="success" OnClick="@ShowPurchaseCoolant" Icon="FontIcon.Search">Coolant구매조회/입력</TelerikButton>
                 </div>
             </CardHeader>
             <CardBody>
-                <h5>Coolant 통계</h5>
+                <div style="display: flex; justify-content: flex-start; align-items: left;">
+                    <h5>Coolant 통계</h5>
+                </div>
                 <TelerikGrid Class="cpk-grid"
                 @ref="@GridRefStat"
                 Data="@gCoolantStats"
@@ -109,8 +113,30 @@
                 </TelerikGrid>
             </CardBody>
         </TelerikCard>
+        <TelerikWindow Visible="@CoolanPurchaseWindowVisible"
+            VisibleChanged="@CoolantPurchaseVisibleChangedHandler"
+            Modal="true"
+            Draggable="true"
+            Resizable="true"
+            MinHeight="200px"
+            Height="80%"
+            MaxHeight="100%"
+            MinWidth="400px"
+            Width="80%"
+            MaxWidth="100%">
+                <WindowTitle>
+                    <h4 style="color:blue"><strong>Coolant 구매이력</strong></h4>
+                </WindowTitle>
+                <WindowActions>
+                    <WindowAction Name="Close" />
+                </WindowActions>
+                <WindowContent>
+                    <CoolantPurchase> </CoolantPurchase>
+                </WindowContent>
+    </TelerikWindow>
     </Authorized>
 </AuthorizeView>
+
 
 @code {
 
@@ -134,6 +160,11 @@
     //--- Search Box
     private string Placeholder { get; set; } = "Search...";
     private int DebounceDelay { get; set; } = 200;
+
+    //--- Coolant 구입
+    //--- Model Add Window
+    private bool CoolanPurchaseWindowVisible = false;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -198,6 +229,18 @@
         }
 
         return lstCoolantUsage;
+    }
+
+    //==========================================================================
+    //--- 구매량 검색/입력 화면 Popup
+    private void ShowPurchaseCoolant()
+    {
+        CoolanPurchaseWindowVisible = true; 
+    }
+    //
+    void CoolantPurchaseVisibleChangedHandler(bool currVisible)
+    {
+        CoolanPurchaseWindowVisible = currVisible;
     }
 
 }

@@ -20,7 +20,7 @@ namespace FimsCPK.Controllers
             _context = context;
         }
 
-
+        /**************************************************************************************
         [HttpPost("save")]
         public async Task<IActionResult> SaveUserConfig([FromBody] UserConfiguration request)
         {
@@ -62,6 +62,7 @@ namespace FimsCPK.Controllers
             UserConfiguration listColumns = JsonSerializer.Deserialize<UserConfiguration> (stateEntity.StateJson);
             return Ok(listColumns);
         }
+        ******************************************************************************/
     }
 
 }

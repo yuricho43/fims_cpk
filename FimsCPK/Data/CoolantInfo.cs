@@ -39,4 +39,14 @@
         public double amount_notdrain { get; set; }        // 미회수량
         public double amount_remain { get; set; }       // 재고량 = 구입량 - 투입량 + 회수량
     }
+
+    public class CoolantPurchaseInfo
+    {
+        public int Id { get; set; }
+        public string CoolantName { get; set; }
+        public double amount_purchase { get; set; }
+        public string ? Etc { get; set; }
+        public DateTime dtPurchased { get; set; }
+        public DateTime? dtUpdated { get; set; }
+    }
 }

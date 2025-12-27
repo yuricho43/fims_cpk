@@ -29,7 +29,6 @@ public partial class FimsDbContext : DbContext
 
     public virtual DbSet<TspecModel> TspecModels { get; set; }
 
-    public virtual DbSet<UserConfigEntity> UserConfigEntities { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

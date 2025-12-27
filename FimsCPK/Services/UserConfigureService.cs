@@ -42,6 +42,7 @@ namespace FimsCPK.Services
             await File.WriteAllTextAsync(filePath, json);
         }
 
+        /******************************************************************************************
         public async Task SaveUserConfigUsingDB(UserConfiguration request)
         {
             try
@@ -77,6 +78,7 @@ namespace FimsCPK.Services
 
             return null;
         }
+        **************************************************************************************************/
 
         //--- 25.6.23
         public List<string> GetCurrentUserRoles()
