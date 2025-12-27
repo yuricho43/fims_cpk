@@ -6,7 +6,7 @@
 
 @************************** PAGE TITLE *****************************************************************@
 <PageTitle>Fims Dashboard</PageTitle>
-<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> Coolant사용량 </div>
+<div class="card-header text-lg-center pt-2 pb-2 fw-bold px-9"> Coolant사용양 </div>
 
 <AuthorizeView>
     <Authorized>
@@ -23,12 +23,18 @@
                     <TelerikDatePicker @bind-Value="@gEndYear"
                     BottomView="@CalendarView.Year"
                     Format="yyyy-MM" Width="120px"></TelerikDatePicker>
+
+                    <div style="margin-right:20px"></div>
+                    <h7><strong>투입양 있는 장비만:</strong></h7>
+                    <div style="margin-right:5px"></div>
+                    <TelerikCheckBox Id="myIncludeDate" @bind-Value="@gOnlyDataExist" />&nbsp;&nbsp
+
                     <div style="margin-right:20px"></div>
                     <TelerikButton ThemeColor="success" OnClick="@SearchDevices" Icon="FontIcon.Search">검색하기</TelerikButton>
                     <div style="margin-right:20px"></div>
                     <h4><strong>장비수=@gNumDevices</strong></h4>
                     <div style="margin-right:100px"></div>
-                    <TelerikButton ThemeColor="success" OnClick="@ShowPurchaseCoolant" Icon="FontIcon.Search">Coolant구매조회/입력</TelerikButton>
+                    <TelerikButton ThemeColor="primary" OnClick="@ShowPurchaseCoolant" Icon="FontIcon.Search">Coolant구매조회/입력</TelerikButton>
                 </div>
             </CardHeader>
             <CardBody>
@@ -47,11 +53,11 @@
                 Height="30%">
                     <GridColumns>
                         <GridColumn Field=@nameof(CoolantAmount.coolantname) Width="60px" Title="Coolant" Sortable=true />
-                        <GridColumn Field=@nameof(CoolantAmount.amount_purchase) Width="60px" Title="총구입량" Sortable=true />
-                        <GridColumn Field=@nameof(CoolantAmount.amount_usage) DisplayFormat="{0:N2}" Width="60px" Title="투입량(사용량)" Sortable=true />
-                        <GridColumn Field=@nameof(CoolantAmount.amount_drain) DisplayFormat="{0:N2}" Width="60px" Title="회수량" Sortable=true />
-                        <GridColumn Field=@nameof(CoolantAmount.amount_notdrain) DisplayFormat="{0:N2}" Width="30px" Title="미회수량(사용량)" Sortable=true />
-                        <GridColumn Field=@nameof(CoolantAmount.amount_remain) Width="30px" Title="재고량" Sortable=true />
+                        <GridColumn Field=@nameof(CoolantAmount.amount_purchase) Width="60px" Title="총구매양" Sortable=true />
+                        <GridColumn Field=@nameof(CoolantAmount.amount_usage) DisplayFormat="{0:N2}" Width="60px" Title="투입양(사용양)" Sortable=true />
+                        <GridColumn Field=@nameof(CoolantAmount.amount_drain) DisplayFormat="{0:N2}" Width="60px" Title="회수양" Sortable=true />
+                        <GridColumn Field=@nameof(CoolantAmount.amount_notdrain) DisplayFormat="{0:N2}" Width="30px" Title="미회수양(사용양)" Sortable=true />
+                        <GridColumn Field=@nameof(CoolantAmount.amount_remain) DisplayFormat="{0:N2}" Width="60px" Title="재고양(총구매양-미회수양)" Sortable=true />
                     </GridColumns>
                 </TelerikGrid>
             </CardBody>
@@ -80,33 +86,33 @@
                         <GridColumn Width="30px" Title="Ch1 Coolant" Sortable=true>
                             <Columns>
                                 <GridColumn Field=@nameof(CoolantInfo.coolantname1) Width="30px" Title="종류" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantcharge1) Width="30px" Title="투입량" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain11) Width="30px" Title="1차회수량" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain12) Width="30px" Title="2차회수량" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantcharge1) Width="30px" Title="투입양" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain11) Width="30px" Title="1차회수양" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain12) Width="30px" Title="2차회수양" Sortable=true />
                             </Columns>
                         </GridColumn>
                         <GridColumn Width="30px" Title="Ch2 Coolant" Sortable=true>
                             <Columns>
                                 <GridColumn Field=@nameof(CoolantInfo.coolantname2) Width="30px" Title="종류" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantcharge2) Width="30px" Title="투입량" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain21) Width="30px" Title="1차회수량" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain22) Width="30px" Title="2차회수량" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantcharge2) Width="30px" Title="투입양" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain21) Width="30px" Title="1차회수양" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain22) Width="30px" Title="2차회수양" Sortable=true />
                             </Columns>
                         </GridColumn>
                         <GridColumn Width="30px" Title="Ch3 Coolant" Sortable=true>
                             <Columns>
                                 <GridColumn Field=@nameof(CoolantInfo.coolantname3) Width="30px" Title="종류" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantcharge3) Width="30px" Title="투입량" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain31) Width="30px" Title="1차회수량" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain32) Width="30px" Title="2차회수량" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantcharge3) Width="30px" Title="투입양" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain31) Width="30px" Title="1차회수양" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain32) Width="30px" Title="2차회수양" Sortable=true />
                             </Columns>
                         </GridColumn>
                         <GridColumn Width="30px" Title="Ch4 Coolant" Sortable=true>
                             <Columns>
                                 <GridColumn Field=@nameof(CoolantInfo.coolantname4) Width="30px" Title="종류" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantcharge4) Width="30px" Title="투입량" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain41) Width="30px" Title="1차회수량" Sortable=true />
-                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain42) Width="30px" Title="2차회수량" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantcharge4) Width="30px" Title="투입양" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain41) Width="30px" Title="1차회수양" Sortable=true />
+                                <GridColumn Field=@nameof(CoolantInfo.coolantdrain42) Width="30px" Title="2차회수양" Sortable=true />
                             </Columns>
                         </GridColumn>
                     </GridColumns>
@@ -114,33 +120,33 @@
             </CardBody>
         </TelerikCard>
         <TelerikWindow Visible="@CoolanPurchaseWindowVisible"
-            VisibleChanged="@CoolantPurchaseVisibleChangedHandler"
-            Modal="true"
-            Draggable="true"
-            Resizable="true"
-            MinHeight="200px"
-            Height="80%"
-            MaxHeight="100%"
-            MinWidth="400px"
-            Width="80%"
-            MaxWidth="100%">
-                <WindowTitle>
-                    <h4 style="color:blue"><strong>Coolant 구매이력</strong></h4>
-                </WindowTitle>
-                <WindowActions>
-                    <WindowAction Name="Close" />
-                </WindowActions>
-                <WindowContent>
-                    <CoolantPurchase> </CoolantPurchase>
-                </WindowContent>
-    </TelerikWindow>
+        VisibleChanged="@CoolantPurchaseVisibleChangedHandler"
+        Modal="true"
+        Draggable="true"
+        Resizable="true"
+        MinHeight="200px"
+        Height="80%"
+        MaxHeight="100%"
+        MinWidth="400px"
+        Width="80%"
+        MaxWidth="100%">
+            <WindowTitle>
+                <h4 style="color:blue"><strong>Coolant 구매이력</strong></h4>
+            </WindowTitle>
+            <WindowActions>
+                <WindowAction Name="Close" />
+            </WindowActions>
+            <WindowContent>
+                <CoolantPopup> </CoolantPopup>
+            </WindowContent>
+        </TelerikWindow>
     </Authorized>
 </AuthorizeView>
 
 
 @code {
 
-    //--- 장비 List : 장비, 쿨런트 사용량/회수량
+    //--- 장비 List : 장비, 쿨런트 사용양/회수양
     private List<CoolantInfo> gCoolantInfo = new List<CoolantInfo>();
     private int gNumDevices = 0;
     private TelerikGrid<CoolantInfo> GridRefCoolant{ get; set; }
@@ -156,6 +162,7 @@
     private DateTime gMaxYear = new DateTime(2030, 1, 1, 0, 0, 0);
     private DateTime gStartYear = DateTime.Now;
     private DateTime gEndYear = DateTime.Now;
+    private bool gOnlyDataExist = true;
 
     //--- Search Box
     private string Placeholder { get; set; } = "Search...";
@@ -168,6 +175,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        SearchDevices();
     }
 
     private void SearchDevices()
@@ -177,6 +185,12 @@
         dateEnd = dateEnd.AddMonths(1);
 
         gCoolantInfo = GetCoolantInfo(dateStart, dateEnd);
+
+        //--- Remove DI-Water
+        gCoolantInfo = gCoolantInfo.Where(x => x.coolantname1 != null && x.coolantname1.Contains("WATER") == false).ToList();
+        if (gOnlyDataExist == true)
+            gCoolantInfo = gCoolantInfo.Where(x => x.coolantcharge1 > 0).ToList();
+
         gNumDevices = gCoolantInfo.Count;
         GridRefCoolant?.Rebind();
 
@@ -207,13 +221,12 @@
         foreach(var cl in cool1)
         {
             CoolantAmount ca = new CoolantAmount();
-            double dch1 = 0, dch2 = 0, dch3 = 0, dch4 = 0;
 
             ca.coolantname = cl;
             ca.amount_usage = gCoolantInfo.Where(x => x.coolantname1 == cl).Sum(x => x.coolantcharge1)
                             + gCoolantInfo.Where(x => x.coolantname2 == cl).Sum(x => x.coolantcharge2)
                             + gCoolantInfo.Where(x => x.coolantname3 == cl).Sum(x => x.coolantcharge3)
-                            + gCoolantInfo.Where(x => x.coolantname4 == cl).Sum(x => x.coolantcharge4);   // 투입량 합
+                            + gCoolantInfo.Where(x => x.coolantname4 == cl).Sum(x => x.coolantcharge4);   // 투입양 합
             ca.amount_drain = gCoolantInfo.Where(x => x.coolantname1 == cl).Sum(x => x.coolantdrain11)
                             + gCoolantInfo.Where(x => x.coolantname1 == cl).Sum(x => x.coolantdrain12)
                             + gCoolantInfo.Where(x => x.coolantname2 == cl).Sum(x => x.coolantdrain21)
@@ -221,10 +234,10 @@
                             + gCoolantInfo.Where(x => x.coolantname3 == cl).Sum(x => x.coolantdrain31)
                             + gCoolantInfo.Where(x => x.coolantname3 == cl).Sum(x => x.coolantdrain32)
                             + gCoolantInfo.Where(x => x.coolantname4 == cl).Sum(x => x.coolantdrain41)
-                            + gCoolantInfo.Where(x => x.coolantname4 == cl).Sum(x => x.coolantdrain42);   // 회수량 합
+                            + gCoolantInfo.Where(x => x.coolantname4 == cl).Sum(x => x.coolantdrain42);   // 회수양 합
             ca.amount_notdrain = ca.amount_usage - ca.amount_drain;
-            //ca.amount_usage = Math.Round(ca.amount_usage, 2);
-            //ca.amount_drain = Math.Round(ca.amount_drain, 2);
+            ca.amount_purchase = cpkService.GetCoolantPurchase(cl);
+            ca.amount_remain = ca.amount_purchase - ca.amount_notdrain;
             lstCoolantUsage.Add(ca);
         }
 
@@ -232,7 +245,7 @@
     }
 
     //==========================================================================
-    //--- 구매량 검색/입력 화면 Popup
+    //--- 구매양 검색/입력 화면 Popup
     private void ShowPurchaseCoolant()
     {
         CoolanPurchaseWindowVisible = true; 

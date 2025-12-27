@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using FimsCPK.Data;
-using FimsCPK.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FimsCPK.Models;
@@ -17,7 +15,7 @@ public partial class FimsDbContext : DbContext
     {
     }
 
-    public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
+    public virtual DbSet<CoolantPurchase> CoolantPurchases { get; set; }
 
     public virtual DbSet<CpkItem> CpkItems { get; set; }
 
@@ -28,7 +26,6 @@ public partial class FimsDbContext : DbContext
     public virtual DbSet<TspecItem> TspecItems { get; set; }
 
     public virtual DbSet<TspecModel> TspecModels { get; set; }
-
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -42,18 +39,11 @@ public partial class FimsDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AspNetUser>(entity =>
+        modelBuilder.Entity<CoolantPurchase>(entity =>
         {
-            entity.HasIndex(e => e.NormalizedEmail, "EmailIndex");
+            entity.ToTable("CoolantPurchase");
 
-            entity.HasIndex(e => e.NormalizedUserName, "UserNameIndex")
-                .IsUnique()
-                .HasFilter("([NormalizedUserName] IS NOT NULL)");
-
-            entity.Property(e => e.Email).HasMaxLength(256);
-            entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
-            entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
-            entity.Property(e => e.UserName).HasMaxLength(256);
+            entity.Property(e => e.CoolantName).HasMaxLength(50);
         });
 
         modelBuilder.Entity<CpkItem>(entity =>

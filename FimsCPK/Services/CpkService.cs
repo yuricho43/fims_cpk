@@ -461,6 +461,76 @@ namespace FimsCPK.Services
             return 1;
         }
 
+        //========================================================================================
+        // Coolant Management
+
+        public void AddCoolantPurchase(CoolantPurchase cp)
+        {
+            _dbFimsContext.CoolantPurchases.Add(cp);
+            _dbFimsContext.SaveChanges();
+
+        }
+
+        public double GetCoolantPurchase(string coolantName)
+        {
+            double dblTotal = 0;
+            List<CoolantPurchase> lstCp = _dbFimsContext.CoolantPurchases.Where(x => x.CoolantName == coolantName).ToList();
+            dblTotal = lstCp.Sum(x => x.Amount);
+            return dblTotal;
+
+        }
+
+        public List<CoolantPurchase> GetCoolantPurchase()
+        {
+            List<CoolantPurchase> lstCp = _dbFimsContext.CoolantPurchases.ToList();
+
+            return lstCp;
+        }
+
+        public string DeleteCoolantItem(CoolantPurchase cp)
+        {
+            //=== Delete POManage
+            var oldcp = _dbFimsContext.CoolantPurchases.FirstOrDefault(p => p.Id == cp.Id);
+            if (oldcp is null)
+                return "Coolant is not found";
+
+            _dbFimsContext.CoolantPurchases.Remove(oldcp);
+            _dbFimsContext.SaveChanges();
+
+            return "Delete successfully";
+        }
+        public string UpdateCoolantItem(CoolantPurchase cp)
+        {
+            //--- get CpkItem
+            var cpItem = _dbFimsContext.CoolantPurchases.FirstOrDefault(p => p.Id == cp.Id);
+
+            if (cpItem is null)
+                return "There is no such a Coolant";
+
+            try
+            {
+                //--- Set to new value
+                CoolantPurchase cpNew = new CoolantPurchase();
+                cpNew = cpItem;
+
+                cpNew.CoolantName = cp.CoolantName;
+                cpNew.Amount = cp.Amount;
+                cpNew.Etc = cp.Etc;
+                cpNew.DtPurchased = cp.DtPurchased;
+                cpNew.DtUpdated = DateTime.Now;
+
+                //--- Update
+                _dbFimsContext.Entry(cpItem).CurrentValues.SetValues(cpNew);
+                _dbFimsContext.SaveChanges();
+
+                return "Updated successfully";
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            return "Update failed";
+        }
         /// <summary>
         ///     1) TestNo=3026(투입량)이 있는 검사 Sheet에서 정보를 뽑아 온다.
         ///     2) TestNo=3009(Coolant종류), 7857 (drain1), 8025 (drain2)값을 가져온다.

@@ -1,0 +1,235 @@
+﻿@page "/coolantpopup"
+
+@using FimsCPK.Data
+@using FimsCPK.Entities
+@using FimsCPK.Models;
+@using FimsCPK.Services
+@using Microsoft.AspNetCore.Identity
+@using Telerik.DataSource
+@using Telerik.DataSource.Extensions
+@using Telerik.FontIcons;
+@using ClosedXML.Excel;
+@using System.Data;
+@using Telerik.SvgIcons
+@inject IJSRuntime JsRuntime
+@inject CpkService cpkService
+@inject UserManager<AspNetUser> _userManager
+@inject IHttpContextAccessor _httpContextAccessor
+
+<AuthorizeView>
+    <Authorized>
+        <TelerikCard>
+            @************************** PAGE HEADER 구성 *************************************************************
+            기간설정 (년/월~년/월),찾기 버튼
+            ********************************************************************************************************@
+            <CardHeader>
+                <div style="display: flex; justify-content: flex-start; align-items: left;">
+                    <h7><strong>구매일자:</strong>:</h7>
+                    <div style="margin-right:5px"></div>
+                    <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gDatePurchase"
+                    BottomView="@CalendarView.Month"
+                    Format="yyyy-MM-dd" Width="120px"></TelerikDatePicker>
+                    <div style="margin-right:20px"></div>
+                    <h7><strong>Coolant이름:</strong></h7>
+                    <div style="margin-right:5px"></div>
+                    <TelerikTextBox @bind-Value="@gStrCoolantName" Width="150px" />
+                    <div style="margin-right:20px"></div>
+                    <h7><strong>구매양(Kg):</strong></h7>
+                    <div style="margin-right:5px"></div>
+                    <TelerikTextBox @bind-Value="@gStrAmount" Width="150px" />
+                    <div style="margin-right:20px"></div>
+                    <TelerikButton ThemeColor="primary" OnClick="@AddCoolantPurchase" Enabled="@IsManager" Icon="FontIcon.Search">구매 입력하기</TelerikButton>
+                    <div style="margin-right:20px"></div>
+                </div>
+            </CardHeader>
+            <CardHeader>
+                <div style="display: flex; justify-content: flex-start; align-items: left;">
+                    @*
+                    <TelerikDatePicker Min="@gMinYear" Max="@gMaxYear" @bind-Value="@gStartYear"
+                    BottomView="@CalendarView.Year"
+                    Format="yyyy-MM" Width="120px"></TelerikDatePicker>
+                    ~
+                    <TelerikDatePicker @bind-Value="@gEndYear"
+                    BottomView="@CalendarView.Year"
+                    Format="yyyy-MM" Width="120px"></TelerikDatePicker>
+                    <div style="margin-right:20px"></div>
+                    *@
+                    <TelerikButton ThemeColor="success" OnClick="@SearchCoolantPurchase" Icon="FontIcon.Search">Coolant구매 조회</TelerikButton>
+                </div>
+            </CardHeader>
+            <CardBody>
+                <TelerikGrid Class="cpk-grid"
+                @ref="@GridRefPurchase"
+                Data="@gCoolantPurchaseInfo"
+                Pageable="false"
+                Groupable="false"
+                Sortable="false"
+                Resizable="false"
+                PageSize=100
+                EditMode="@GridEditMode.Inline"
+                OnUpdate="@UpdateHandler" OnEdit="@EditHandler" OnDelete="@DeleteHandler" OnCreate="@CreateHandler" OnCancel="@CancelHandler"
+                Navigable="true"
+                Height="30%">
+                    <GridToolBarTemplate>
+                        <GridSearchBox Placeholder="@Placeholder" Width="300px" DebounceDelay="@DebounceDelay" />
+                        <span>Write in the textbox on the left-hand side to filter all string columns.</span>
+                    </GridToolBarTemplate>
+                    <GridColumns>
+                        <GridColumn Field=@nameof(CoolantPurchase.CoolantName) Width="200px" Title="Coolant" Sortable=true />
+                        <GridColumn Field=@nameof(CoolantPurchase.DtPurchased) Width="200px" Title="구입일자" Sortable=true />
+                        <GridColumn Field=@nameof(CoolantPurchase.Amount) Width="200px" Title="구입양" Sortable=true />
+                        <GridCommandColumn Context="coolant">
+                            <GridCommandButton Command="Save" Icon="@SvgIcon.Save" ShowInEdit="true">Update</GridCommandButton>
+                            <GridCommandButton Command="Edit" Icon="@SvgIcon.Pencil" Enabled="@IsManager">Edit</GridCommandButton>
+                            <GridCommandButton Command="Delete" Icon="@SvgIcon.Trash" Enabled="@IsManager">Delete</GridCommandButton>
+                            <GridCommandButton Command="Cancel" Icon="@SvgIcon.Cancel" ShowInEdit="true">Cancel</GridCommandButton>
+                        </GridCommandColumn>
+                    </GridColumns>
+                </TelerikGrid>
+            </CardBody>
+        </TelerikCard>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    /*
+         *  1) Coolant 구매 관련 화면
+         *  2) 입력하기 : Coolant 종류, 수량, 날짜
+         *  3) 구성 : 기간설정 시작월~끝월
+         *  4) List : 구매 이력 (SearchBox에서 Coolant이름으로 Filtering 가능)
+         *            삭제/수정하기 기능 (Admin의 경우에만)
+         * 
+        */
+
+        //--- 구매양 입력하기
+    private string gStrAmount { get; set; }
+    private string gStrCoolantName { get; set; }
+
+    //--- Search Box
+    private string Placeholder { get; set; } = "Search...";
+    private int DebounceDelay { get; set; } = 200;
+
+    //--- 검색날짜
+    //--- 검색 기간 : 2023~2030 사이
+    private DateTime gMinYear = new DateTime(2025, 1, 1, 0, 0, 0);
+    private DateTime gMaxYear = new DateTime(2040, 1, 1, 0, 0, 0);
+    private DateTime gStartYear = DateTime.Now;
+    private DateTime gEndYear = DateTime.Now;
+    private DateTime gDatePurchase = DateTime.Now;
+
+    //--- Grid
+    private List<CoolantPurchase> gCoolantPurchaseInfo = new List<CoolantPurchase>();
+    private int gNumDevices = 0;
+    private TelerikGrid<CoolantPurchase> GridRefPurchase { get; set; }
+
+
+    //--- Add Cpk Item for a model or for all models
+    public bool AddCpkItemDialogVisible { get; set; } = false;
+    private string curRole = "None";
+    private bool IsManager { get; set; } = false;
+    private string gStrModelAdd { get; set; } = "";        // 추가할 cpkModel 이름
+    public TelerikComboBox<string, string> ComboBoxCpkModel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        curRole = await GetUserRole();
+        if (curRole.Contains("Admin") || curRole.Contains("Manager"))
+            IsManager = true;
+        SearchCoolantPurchase();
+    }
+
+    private async Task<string> GetUserRole()
+    {
+        string strRole = "None";
+        var roles = await GetCurrentUserRolesAsync();
+        if (roles.Count > 0)
+            strRole = roles[0];
+        return strRole;
+    }
+    public async Task<IList<string>> GetCurrentUserRolesAsync()
+    {
+        // 현재 로그인한 사용자 확인
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            return new List<string>();
+        }
+
+        // 사용자의 역할 반환
+        return await _userManager.GetRolesAsync(user);
+    }
+
+    private void SearchCoolantPurchase()
+    {
+        gCoolantPurchaseInfo = cpkService.GetCoolantPurchase();
+
+        if (GridRefPurchase != null)
+            GridRefPurchase.Rebind();
+        StateHasChanged();
+    }
+
+    private void AddCoolantPurchase()
+    {
+        CoolantPurchase cp = new CoolantPurchase();
+
+        cp.DtPurchased = gDatePurchase;
+        cp.Amount = double.Parse(gStrAmount);
+        cp.CoolantName = gStrCoolantName;
+
+        if (cp.Amount > 0.0)
+        {
+            cpkService.AddCoolantPurchase(cp);
+        }
+
+        SearchCoolantPurchase();
+
+    }
+
+    //------------------------------------------------------
+    async Task UpdateHandler(GridCommandEventArgs args)
+    {
+        if (IsManager == false)
+            return;
+
+        CoolantPurchase item = (CoolantPurchase)args.Item;
+
+        // perform actual data source operations here through your service
+        cpkService.UpdateCoolantItem(item);
+
+    }
+
+    void EditHandler(GridCommandEventArgs args)
+    {
+        if (IsManager == false)
+            return;
+
+        Console.WriteLine("Edit event is fired.");
+    }
+
+    //======================================================================
+    //--- Delete LCL/UCL
+    async Task DeleteHandler(GridCommandEventArgs args)
+    {
+        if (IsManager == false)
+            return;
+
+        CoolantPurchase item = (CoolantPurchase)args.Item;
+
+        // perform actual data source operation here through your service
+        cpkService.DeleteCoolantItem(item);
+
+    }
+
+    //======================================================================
+    //--- Create LCL/UCL
+    async Task CreateHandler(GridCommandEventArgs args)
+    {
+    }
+
+    //======================================================================
+    //--- Cancel Handler : Nothing to do
+    async Task CancelHandler(GridCommandEventArgs args)
+    {
+    }
+
+}
