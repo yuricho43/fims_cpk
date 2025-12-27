@@ -196,6 +196,7 @@
         // perform actual data source operations here through your service
         cpkService.UpdateCoolantItem(item);
 
+        SearchCoolantPurchase();
     }
 
     void EditHandler(GridCommandEventArgs args)
@@ -218,6 +219,7 @@
         // perform actual data source operation here through your service
         cpkService.DeleteCoolantItem(item);
 
+        SearchCoolantPurchase();
     }
 
     //======================================================================
